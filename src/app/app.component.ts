@@ -33,6 +33,7 @@ export class AppComponent implements OnInit {
     //   next => console.log( next )
     // );
 
+
     setTimeout(( ) => {
       this.getAdvancedTicks( ).subscribe(
         next => {
