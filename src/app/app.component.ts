@@ -4,6 +4,7 @@ import { Observable } from 'rxjs/Observable';
 import { Observer } from 'rxjs/Rx';
 import 'rxjs/Rx';
 import { BehaviorSubject } from 'rxjs/BehaviorSubject';
+import { QuoteService } from 'app/quote/quote.service';
 
 @Component({
   selector: 'app-root',
@@ -19,7 +20,9 @@ export class AppComponent implements OnInit {
 
   private _onDateUpdate: BehaviorSubject<Date>;
 
-  constructor(private _http: Http ) {
+  constructor(
+    private _http: Http,
+    private _quoteService: QuoteService) {
   }
 
   ngOnInit( ) {
@@ -88,7 +91,7 @@ export class AppComponent implements OnInit {
   }
 
   requestQuote( from: string, to: string ): Observable<any> {
-    //let apiUrl: string = `https://www.bitstamp.net/api/v2/ticker/${from.toUpperCase()}${to.toUpperCase()}`;
+    // let apiUrl: string = `https://www.bitstamp.net/api/v2/ticker/${from.toUpperCase()}${to.toUpperCase()}`;
     let apiUrl: string = `https://bitcoinfees.21.co/api/v1/fees/recommended`;
     return this._http.get(apiUrl).map(response => { let json = response.json(); json.fromCurrency = from; json.toCurrency = to; return json; } );
   }

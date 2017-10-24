@@ -1,0 +1,20 @@
+<table class="table table-striped">
+  <thead>
+    <tr>
+      <th>TradeId</th>
+      <th>OrderType</th>
+      <th>Timestamp</th>
+      <th>Price</th>
+      <th>Amount</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr *ngFor="let trade of lastTrades" [ngClass]="{ 'danger': trade.orderType === 'SELL', 'success': trade.orderType === 'BUY' }">
+      <td>{{trade.tradeId}}</td>
+      <td>{{trade.orderType}}</td>
+      <td>{{trade.timestamp | date:'dd.MM.yyyy HH:mm:ss'}}</td>
+      <td>{{trade.orderPrice | number:'1.2-2'}}</td>
+      <td>{{trade.amount | number:'1.4-4'}}</td>
+    </tr>
+  </tbody>
+</table>
