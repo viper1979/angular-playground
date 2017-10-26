@@ -1,7 +1,7 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { BitfenixService } from 'app/api/bitfenix/bitfenix.service';
 import { TradeMessage } from 'app/api/bitfenix/bitfenix-channel-messages';
-import { BitfenixChannelSubscription } from 'app/api/bitfenix/bitfenix-subscription';
+import { BitfenixChannelSubscription } from 'app/api/bitfenix/bitfenix-channels';
 import { Subscription } from 'rxjs/Subscription';
 import 'rxjs/Rx';
 
@@ -22,17 +22,6 @@ export class QuoteComponent implements OnInit, OnDestroy {
 
   ngOnInit() {
     this.lastTrades = [];
-
-    // this._subscription = this._quoteService.getListener( ).subscribe(
-    //   next => {
-    //     if (this.lastTrades.length > 10) {
-    //       this.lastTrades.splice(-1, 1);
-    //     }
-    //     this.lastTrades.splice(0, 0, next);
-    //   },
-    //   error => console.log( 'QuoteComponent | ngOnInit | error: ' + JSON.stringify(error) ),
-    //   () => console.log( 'QuoteComponent | ngOnInit | completed' )
-    // );
 
     this._bitfenixSubscription = this._quoteService.getTradeListener( 'BTC', 'USD' );
     this._bitfenixSubscription.listener.subscribe(

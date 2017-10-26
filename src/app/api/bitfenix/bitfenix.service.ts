@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject } from 'rxjs/BehaviorSubject';
 import { Observable } from 'rxjs/Observable';
-import { BitfenixChannel, BitfenixTradeChannel, BitfenixChannelSubscription } from 'app/api/bitfenix/bitfenix-channels';
+import { BitfenixChannel, BitfenixTradeChannel, BitfenixTickerChannel, BitfenixChannelSubscription, BitfenixBooksChannel } from 'app/api/bitfenix/bitfenix-channels';
 import { BitfenixChannelMessage, TradeMessage } from 'app/api/bitfenix/bitfenix-channel-messages';
 import 'rxjs/Rx';
 
@@ -36,6 +36,44 @@ export class BitfenixService {
 
       if (this._socketConnection && this._socketConnection.readyState === 1 ) {
         this._socketConnection.send( channel.getSubscribeMessage( ) );
+      }
+    }
+
+    return channel.getSubscription( );
+  }
+
+  getTickerListener( fromCurrency: string, toCurrency: string ): BitfenixChannelSubscription {
+    let pair = fromCurrency.toUpperCase( ) + toCurrency.toUpperCase( );
+
+    let tradeChannels = Array.from( this._activeSubscriptions.values( ) ).filter( item => (item as BitfenixTickerChannel) !== undefined ) as BitfenixTickerChannel[];
+    let channel = tradeChannels.find( item => item.pair === pair );
+
+    if (!channel) {
+      channel = new BitfenixTickerChannel( );
+      channel.pair = fromCurrency + toCurrency;
+      // channel.symbol = 't' + channel.pair;
+      this._queuedSubscriptions.set( channel.pair, channel );
+
+      if (this._socketConnection && this._socketConnection.readyState === 1 ) {
+        this._socketConnection.send( channel.getSubscribeMessage( ) );
+      }
+    }
+
+    return channel.getSubscription( );
+  }
+
+  getBooksListener( symbol: string, options: { prec: string, freq: string, length: string} ): BitfenixChannelSubscription {
+    let booksChannels = Array.from( this._activeSubscriptions.values( ) ).filter( item => (item as BitfenixBooksChannel) !== undefined ) as BitfenixBooksChannel[];
+    let channel = booksChannels.find( item => item.symbol === symbol );
+
+    if (!channel) {
+      channel = new BitfenixBooksChannel( );
+      channel.symbol = symbol;
+
+      this._queuedSubscriptions.set( channel.symbol, channel );
+
+      if (this._socketConnection && this._socketConnection.readyState === 1 ) {
+        this._socketConnection.send( channel.getSubscribeMessage( options ) );
       }
     }
 
@@ -109,7 +147,6 @@ export class BitfenixService {
             break;
           }
           case 'subscribed': {
-            console.log( '### SUBSCRIBED: ' + JSON.stringify(parsedMessage) );
             this.subscriptionReceived(parsedMessage);
             break;
           }
@@ -166,19 +203,33 @@ export class BitfenixService {
   /***/
 
   private subscriptionReceived( parsedMessage: ITradeSubscription ): void {
+    console.log( '### SUBSCRIBED: ' + JSON.stringify(parsedMessage) );
+
     let pair = parsedMessage.pair;
+    let symbol = parsedMessage.symbol;
+    let cacheKey: string;
 
     if (this._queuedSubscriptions.has(pair)) {
-      let bitfenixChannel = this._queuedSubscriptions.get(pair);
+      cacheKey = pair;
+    }
+    if (this._queuedSubscriptions.has(symbol)) {
+      cacheKey = symbol;
+    }
+
+    if (cacheKey && cacheKey.length > 0) {
+      let bitfenixChannel = this._queuedSubscriptions.get(cacheKey);
       bitfenixChannel.channel = parsedMessage.channel;
       bitfenixChannel.channelId = parsedMessage.chanId;
 
       this._activeSubscriptions.set(bitfenixChannel.channelId, bitfenixChannel);
-      this._queuedSubscriptions.delete(pair);
+      this._queuedSubscriptions.delete(cacheKey);
     } else {
       console.log('No queued subscription found for currency-pair: ' + pair);
     }
   }
+
+  // private unsubscribeReceived( parsedMessage: ITradeUnsubscribe ): void {
+  // }
 }
 
 export interface ITradeSubscription {
