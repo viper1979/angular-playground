@@ -5,12 +5,14 @@ import { AppComponent } from './app.component';
 import { ServiceProblemsComponent } from './serviceProblems/serviceProblems.component';
 import { QuoteComponent } from './quote/quote.component';
 import { BitfenixService } from 'app/api/bitfenix/bitfenix.service';
+import { TickerComponent } from './ticker/ticker.component';
 
 @NgModule({
   declarations: [
     AppComponent,
     ServiceProblemsComponent,
-    QuoteComponent
+    QuoteComponent,
+    TickerComponent
 ],
   imports: [
     BrowserModule,

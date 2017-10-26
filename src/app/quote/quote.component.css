@@ -79,3 +79,10 @@
     font-weight: bold;
   }
 }
+
+.sell {
+  background-color: rgb(255, 235, 235);
+}
+.buy {
+  background-color: rgb(220, 255, 220);
+}
