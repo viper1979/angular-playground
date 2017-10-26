@@ -4,7 +4,7 @@ import { NgModule } from '@angular/core';
 import { AppComponent } from './app.component';
 import { ServiceProblemsComponent } from './serviceProblems/serviceProblems.component';
 import { QuoteComponent } from './quote/quote.component';
-import { QuoteService } from 'app/quote/quote.service';
+import { BitfenixService } from 'app/api/bitfenix/bitfenix.service';
 
 @NgModule({
   declarations: [
@@ -16,7 +16,7 @@ import { QuoteService } from 'app/quote/quote.service';
     BrowserModule,
     HttpModule
   ],
-  providers: [QuoteService],
+  providers: [BitfenixService],
   bootstrap: [AppComponent]
 })
 export class AppModule { }

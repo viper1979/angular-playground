@@ -4,7 +4,7 @@ import { Observable } from 'rxjs/Observable';
 import { Observer } from 'rxjs/Rx';
 import 'rxjs/Rx';
 import { BehaviorSubject } from 'rxjs/BehaviorSubject';
-import { QuoteService } from 'app/quote/quote.service';
+import { BitfenixService } from 'app/api/bitfenix/bitfenix.service';
 
 @Component({
   selector: 'app-root',
@@ -22,7 +22,7 @@ export class AppComponent implements OnInit {
 
   constructor(
     private _http: Http,
-    private _quoteService: QuoteService) {
+    private _quoteService: BitfenixService) {
   }
 
   ngOnInit( ) {

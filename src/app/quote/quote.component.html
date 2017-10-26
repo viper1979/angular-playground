@@ -1,20 +1,34 @@
 <table class="table table-striped">
   <thead>
     <tr>
-      <th>TradeId</th>
-      <th>OrderType</th>
+      <!-- <th>TradeId</th> -->
       <th>Timestamp</th>
-      <th>Price</th>
-      <th>Amount</th>
+      <th>OrderType</th>
+      <th class="text-center">Price</th>
+      <th class="text-center">Amount</th>
+      <th class="text-center">Value</th>
     </tr>
   </thead>
   <tbody>
-    <tr *ngFor="let trade of lastTrades" [ngClass]="{ 'danger': trade.orderType === 'SELL', 'success': trade.orderType === 'BUY' }">
-      <td>{{trade.tradeId}}</td>
-      <td>{{trade.orderType}}</td>
-      <td>{{trade.timestamp | date:'dd.MM.yyyy HH:mm:ss'}}</td>
-      <td>{{trade.orderPrice | number:'1.2-2'}}</td>
-      <td>{{trade.amount | number:'1.4-4'}}</td>
+    <tr *ngFor="let trade of lastTrades" [ngClass]="{ 'danger': trade.orderType === 'SELL', 'success': trade.orderType === 'BUY', 'slide-in-bck-center': true }">
+      <!-- <td>{{trade.tradeId}}</td> -->
+      <td>{{trade.timestamp | date:'HH:mm:ss'}}</td>
+      <td>
+        <i class="fa fa-caret-square-o-up" aria-hidden="true" *ngIf="trade.orderType==='BUY'"></i>
+        <i class="fa fa-caret-square-o-down" aria-hidden="true" *ngIf="trade.orderType==='SELL'"></i>
+        {{trade.orderType}}
+      </td>
+      <td class="text-right">
+        {{trade.orderPrice | number:'1.2-2'}}
+        <i class="fa fa-usd" aria-hidden="true"></i>
+      </td>
+      <td class="text-right">{{trade.amount | number:'1.4-4'}}</td>
+      <td class="text-right">
+        <div [ngClass]="{ 'blink-1': (trade.amount * trade.orderPrice) > 5000 }">
+          ~ {{(trade.amount * trade.orderPrice) | number:'1.2-2'}}
+          <i class="fa fa-usd" aria-hidden="true"></i>
+        </div>
+      </td>
     </tr>
   </tbody>
 </table>
