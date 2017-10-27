@@ -1,15 +1,22 @@
 import { BehaviorSubject, Observable } from 'rxjs/Rx';
-import { BitfenixChannelMessage, TradeMessage, TickerMessage } from 'app/api/bitfenix/bitfenix-channel-messages';
+import { BitfenixChannelMessage, TradeMessage, TickerMessage, BookMessage } from 'app/api/bitfenix/bitfenix-channel-messages';
 import { EventEmitter } from '@angular/core';
 
 export class BitfenixChannelSubscription {
-  public readonly channelId: number;
-  public readonly channel: string;
+  protected readonly _channel: BitfenixChannel;
+
+  get channelId(): number {
+    return this._channel.channelId;
+  }
+  get channel(): string {
+    return this._channel.channel;
+  }
+
   public readonly pair: string;
   public readonly listener: Observable<BitfenixChannelMessage>;
 
-  constructor( channel: string, pair: string, listener: Observable<BitfenixChannelMessage> ) {
-    this.channel = channel;
+  constructor( channel: BitfenixChannel, pair: string, listener: Observable<BitfenixChannelMessage> ) {
+    this._channel = channel;
     this.pair = pair;
     this.listener = listener;
   }
@@ -19,14 +26,21 @@ export abstract class BitfenixChannel {
   public channelId: number;
   public channel: string;
   public heartbeat: EventEmitter<{channel: string, timestamp: Date}>;
+  protected subscription: BitfenixChannelSubscription;
 
   abstract getSubscribeMessage( options?: any ): string;
-  abstract getUnsubscribeMessage( ): string;
   abstract getSubscription( ): BitfenixChannelSubscription;
   abstract sendMessage( parsedMessage: any ): void;
 
   public sendHeartbeat( ): void {
     this.heartbeat.emit({ channel: this.channel, timestamp: new Date() });
+  }
+
+  public getUnsubscribeMessage( ): string {
+    return JSON.stringify({
+      'event': 'unsubscribe',
+      'chanId': this.channelId
+    });
   }
 
   constructor( ) {
@@ -55,16 +69,9 @@ export class BitfenixTradeChannel extends BitfenixChannel {
     });
   }
 
-  public getUnsubscribeMessage( ): string {
-    return JSON.stringify({
-      'event': 'unsubscribe',
-      'chanId': this.channelId
-    });
-  }
-
   public getSubscription( ): BitfenixChannelSubscription {
     let listener = this.listener.filter( item => item !== null );
-    return new BitfenixChannelSubscription( this.channel, this.pair, listener );
+    return new BitfenixChannelSubscription( this, this.pair, listener );
   }
 
   public sendMessage( parsedMessage: any ): void {
@@ -119,34 +126,30 @@ export class BitfenixTickerChannel extends BitfenixChannel {
     });
   }
 
-  public getUnsubscribeMessage( ): string {
-    return JSON.stringify('');
-  }
-
   public getSubscription( ): BitfenixChannelSubscription {
     let listener = this.listener.filter( item => item !== null );
-    return new BitfenixChannelSubscription( this.channel, this.pair, listener );
+    return new BitfenixChannelSubscription( this, this.pair, listener );
   }
 
   public sendMessage( parsedMessage: any ): void {
     console.log( 'TickerMessage | sendMessage | parsedMessage: ' + JSON.stringify(parsedMessage) );
 
     if (parsedMessage) {
-      let tradeMessage = new TickerMessage( );
-      tradeMessage.channelId = parsedMessage[0];
-      tradeMessage.messageType = 'ticker';
-      tradeMessage.bid = parsedMessage[1][0];
-      tradeMessage.bidSize = parsedMessage[1][1];
-      tradeMessage.ask = parsedMessage[1][2];
-      tradeMessage.askSize = parsedMessage[1][3];
-      tradeMessage.dailyChange = parsedMessage[1][4];
-      tradeMessage.dailyChangePercent = parsedMessage[1][5];
-      tradeMessage.lastPrice = parsedMessage[1][6];
-      tradeMessage.volume = parsedMessage[1][7];
-      tradeMessage.high = parsedMessage[1][8];
-      tradeMessage.low = parsedMessage[1][9];
+      let tickerMessage = new TickerMessage( );
+      tickerMessage.channelId = parsedMessage[0];
+      tickerMessage.messageType = 'ticker';
+      tickerMessage.bid = parsedMessage[1][0];
+      tickerMessage.bidSize = parsedMessage[1][1];
+      tickerMessage.ask = parsedMessage[1][2];
+      tickerMessage.askSize = parsedMessage[1][3];
+      tickerMessage.dailyChange = parsedMessage[1][4];
+      tickerMessage.dailyChangePercent = parsedMessage[1][5];
+      tickerMessage.lastPrice = parsedMessage[1][6];
+      tickerMessage.volume = parsedMessage[1][7];
+      tickerMessage.high = parsedMessage[1][8];
+      tickerMessage.low = parsedMessage[1][9];
 
-      this.listener.next( tradeMessage );
+      this.listener.next( tickerMessage );
     }
   }
 }
@@ -189,16 +192,35 @@ export class BitfenixBooksChannel extends BitfenixChannel {
     return JSON.stringify(message);
   }
 
-  public getUnsubscribeMessage( ): string {
-    return JSON.stringify('');
-  }
-
   public getSubscription( ): BitfenixChannelSubscription {
     let listener = this.listener.filter( item => item !== null );
-    return new BitfenixChannelSubscription( this.channel, this.symbol, listener );
+    return new BitfenixChannelSubscription( this, this.symbol, listener );
   }
 
   public sendMessage( parsedMessage: any ): void {
-    console.log( 'BitfenixBooksChannel | sendMessage | TODO: send message')
+    console.log( 'BitfenixBooksChannel | sendMessage | parsedMessage: ' + JSON.stringify(parsedMessage) );
+
+    if (parsedMessage) {
+      if (parsedMessage[1] instanceof Array) {
+        parsedMessage[1].forEach(element => {
+          let bookMessage = new BookMessage( );
+          bookMessage.channelId = parsedMessage[0];
+          bookMessage.price = element[0];
+          bookMessage.count = element[1];
+          bookMessage.amount = element[2];
+
+          this.listener.next( bookMessage );
+        });
+      } else {
+
+        let bookMessage = new BookMessage( );
+        bookMessage.channelId = parsedMessage[0];
+        bookMessage.price = parsedMessage[1][0];
+        bookMessage.count = parsedMessage[1][1];
+        bookMessage.amount = parsedMessage[1][2];
+
+        this.listener.next( bookMessage );
+      }
+    }
   }
 }

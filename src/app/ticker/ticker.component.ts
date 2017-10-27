@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, OnDestroy } from '@angular/core';
+import { Component, Input, OnInit, OnChanges, OnDestroy, SimpleChanges } from '@angular/core';
 import { BitfenixService } from 'app/api/bitfenix/bitfenix.service';
 import { BitfenixChannelSubscription } from 'app/api/bitfenix/bitfenix-channels';
 import { TickerMessage } from 'app/api/bitfenix/bitfenix-channel-messages';
@@ -9,30 +9,39 @@ import { Subscription } from 'rxjs/Subscription';
   templateUrl: './ticker.component.html',
   styleUrls: ['./ticker.component.css']
 })
-export class TickerComponent implements OnInit, OnDestroy {
+export class TickerComponent implements OnInit, OnChanges, OnDestroy {
   private _subscription: Subscription;
   private _bitfenixSubscription: BitfenixChannelSubscription;
 
   tickerMessage: TickerMessage;
 
   @Input( )
-  fromCurrency: string;
-
-  @Input( )
-  toCurrency: string;
+  symbol: string;
 
   constructor(private _tickerService: BitfenixService) { }
 
   ngOnInit() {
-    this._bitfenixSubscription = this._tickerService.getTickerListener( this.fromCurrency.toUpperCase( ), this.toCurrency.toUpperCase( ) );
-    this._bitfenixSubscription.listener.subscribe(
-      next => {
-        let tickerMessage: TickerMessage = next as TickerMessage;
-        this.tickerMessage = tickerMessage;
-      },
-      error => console.log( 'TickerComponent | ngOnInit | error: ' + JSON.stringify(error) ),
-      () => console.log( 'TickerComponent | ngOnInit | completed' )
-    );
+  }
+
+  ngOnChanges(changes: SimpleChanges) {
+    console.log('TickerComponent | ngOnChanges | changes: ' + JSON.stringify(changes) );
+
+    if (changes.symbol.currentValue.length === 6) {
+      if (this._bitfenixSubscription) {
+        this._tickerService.unsubscribe(this._bitfenixSubscription);
+      }
+
+      console.log( 'TickerComponent | ngOnChanges | Trying to subscribe to symbol: ' + this.symbol);
+      this._bitfenixSubscription = this._tickerService.getTickerListener( this.symbol );
+      this._bitfenixSubscription.listener.subscribe(
+        next => {
+          let tickerMessage: TickerMessage = next as TickerMessage;
+          this.tickerMessage = tickerMessage;
+        },
+        error => console.log( 'TickerComponent | ngOnChanges | error: ' + JSON.stringify(error) ),
+        () => console.log( 'TickerComponent | ngOnChanges | completed' )
+      );
+    }
   }
 
   ngOnDestroy() {

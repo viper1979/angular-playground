@@ -24,7 +24,7 @@ export class BitfenixChannelMessage {
         return tradeMessage;
       }
       default: {
-        console.log( 'messageType not implemented: ' + parsedMessage);
+        // console.log( 'messageType not implemented: ' + parsedMessage);
         return new BitfenixChannelMessage( );
       }
     }
@@ -64,10 +64,26 @@ export class CandleMessage extends BitfenixChannelMessage {
 
 export class BookMessage extends BitfenixChannelMessage {
   price: number;
-  rate?: number;
-  period?: number;
+  rate: number;
+  period: number;
   count: number;
   amount: number;
+
+  getOrderType( ): string {
+    if (this.count > 0) {
+      if (this.amount > 0) {
+        return 'UPDATE_BID';
+      } else if (this.amount < 0) {
+        return 'UPDATE_ASK'
+      }
+    } else {
+      if (this.amount === 1) {
+        return 'DELETE_BID';
+      } else if (this.amount === -1) {
+        return 'DELETE_ASK';
+      }
+    }
+  }
 }
 
 export class TickerMessage extends BitfenixChannelMessage {

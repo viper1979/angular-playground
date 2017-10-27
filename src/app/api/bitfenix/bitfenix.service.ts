@@ -10,6 +10,13 @@ export class BitfenixService {
   private _this;
   private _apiUrl: string = 'wss://api.bitfinex.com/ws/2';
   private _socketConnection: WebSocket;
+  private _availableSymbols: string[] = [
+    'BTCUSD', 'LTCUSD', 'LTCBTC', 'ETHUSD', 'ETHBTC', 'ETCBTC', 'ETCUSD', 'RRTUSD', 'RRTBTC', 'ZECUSD', 'ZECBTC', 'XMRUSD', 'XMRBTC',
+    'DSHUSD', 'DSHBTC', 'BCCBTC', 'BCUBTC', 'BCCUSD', 'BCUUSD', 'XRPUSD', 'XRPBTC', 'IOTUSD', 'IOTBTC', 'IOTETH', 'EOSUSD', 'EOSBTC',
+    'EOSETH', 'SANUSD', 'SANBTC', 'SANETH', 'OMGUSD', 'OMGBTC', 'OMGETH', 'BCHUSD', 'BCHBTC', 'BCHETH', 'NEOUSD', 'NEOBTC', 'NEOETH',
+    'ETPUSD', 'ETPBTC', 'ETPETH', 'QTMUSD', 'QTMBTC', 'QTMETH', 'BT1USD', 'BT2USD', 'BT1BTC', 'BT2BTC', 'AVTUSD', 'AVTBTC', 'AVTETH',
+    'EDOUSD', 'EDOBTC', 'EDOETH', 'BTGUSD', 'BTGBTC'
+  ];
 
   private _activeSubscriptions: Map<number, BitfenixChannel>;
   private _queuedSubscriptions: Map<string, BitfenixChannel>;
@@ -22,19 +29,21 @@ export class BitfenixService {
     }
   }
 
-  getTradeListener( fromCurrency: string, toCurrency: string ): BitfenixChannelSubscription {
-    console.log( 'BitfinexService | getTradeListener | fromCurrency: ' + fromCurrency + ' toCurrency: ' + toCurrency);
+  getAvailableSymbols( ): string[] {
+    return this._availableSymbols;
+  }
 
-    let pair = fromCurrency.toUpperCase( ) + toCurrency.toUpperCase( );
+  getTradeListener( symbol: string ): BitfenixChannelSubscription {
+    console.log( 'BitfinexService | getTradeListener | symbol: ' + symbol);
 
     let tradeChannels = Array.from( this._activeSubscriptions.values( ) ).filter( item => (item as BitfenixTradeChannel) !== undefined ) as BitfenixTradeChannel[];
-    let channel = tradeChannels.find( item => item.pair === pair );
+    let channel = tradeChannels.find( item => item.symbol === symbol );
 
     if (!channel) {
       channel = new BitfenixTradeChannel( );
-      channel.pair = fromCurrency + toCurrency;
-      // channel.symbol = 't' + channel.pair;
-      this._queuedSubscriptions.set( 'trades_' + channel.pair, channel );
+      channel.pair = symbol
+      channel.symbol = 't' + symbol;
+      this._queuedSubscriptions.set( 'trades_' + symbol, channel );
 
       if (this._socketConnection && this._socketConnection.readyState === 1 ) {
         this._socketConnection.send( channel.getSubscribeMessage( ) );
@@ -44,18 +53,16 @@ export class BitfenixService {
     return channel.getSubscription( );
   }
 
-  getTickerListener( fromCurrency: string, toCurrency: string ): BitfenixChannelSubscription {
-    console.log( 'BitfinexService | getTickerListener | fromCurrency: ' + fromCurrency + ' toCurrency: ' + toCurrency);
-
-    let pair = fromCurrency.toUpperCase( ) + toCurrency.toUpperCase( );
+  getTickerListener( symbol: string ): BitfenixChannelSubscription {
+    console.log( 'BitfinexService | getTickerListener | symbol: ' + symbol );
 
     let tradeChannels = Array.from( this._activeSubscriptions.values( ) ).filter( item => (item as BitfenixTickerChannel) !== undefined ) as BitfenixTickerChannel[];
-    let channel = tradeChannels.find( item => item.pair === pair );
+    let channel = tradeChannels.find( item => item.symbol === symbol );
 
     if (!channel) {
       channel = new BitfenixTickerChannel( );
-      channel.pair = pair;
-      channel.symbol = 't' + pair;
+      channel.pair = symbol;
+      channel.symbol = 't' + symbol;
       this._queuedSubscriptions.set( 'ticker_' + channel.symbol, channel );
 
       if (this._socketConnection && this._socketConnection.readyState === 1 ) {
@@ -66,13 +73,14 @@ export class BitfenixService {
     return channel.getSubscription( );
   }
 
-  getBooksListener( symbol: string, options: { prec: string, freq: string, length: string} ): BitfenixChannelSubscription {
+  getBooksListener( symbol: string, options?: { prec: string, freq: string, length: string} ): BitfenixChannelSubscription {
     let booksChannels = Array.from( this._activeSubscriptions.values( ) ).filter( item => (item as BitfenixBooksChannel) !== undefined ) as BitfenixBooksChannel[];
     let channel = booksChannels.find( item => item.symbol === symbol );
 
     if (!channel) {
       channel = new BitfenixBooksChannel( );
-      channel.symbol = symbol;
+      channel.pair = symbol;
+      channel.symbol = 't' + symbol;
 
       this._queuedSubscriptions.set( channel.symbol, channel );
 
@@ -84,37 +92,14 @@ export class BitfenixService {
     return channel.getSubscription( );
   }
 
-  /**
-   * symbol:
-   * precision: Level of price aggregation (P0, P1, P2, P3). The default is P0
-   * frequency: Frequency of updates (F0, F1). F0=realtime / F1=2sec. The default is F0.
-   * length: Number of price points ("25", "100") [default="25"]
-   */
-  private subscribeBooks( symbol: string, options: { precision?: string, frequency?: string, length?: string } ): boolean {
-    let message = {
-      'event': 'subscribe',
-      'channel': 'book',
-      'symbol': symbol,
-      'prec': 'P0',
-      'freq': 'F0',
-      'length': '25'
-    };
+  unsubscribe( subscription: BitfenixChannelSubscription ): boolean {
+    if (this._activeSubscriptions.has( subscription.channelId )) {
+      let channel = this._activeSubscriptions.get( subscription.channelId );
 
-    if (options) {
-      if (options.precision) {
-        message.prec = options.precision;
+      if (this._socketConnection && this._socketConnection.readyState === 1) {
+        this._socketConnection.send( channel.getUnsubscribeMessage( ) );
+        return true;
       }
-      if (options.frequency) {
-        message.freq = options.frequency;
-      }
-      if (options.length) {
-        message.length = options.length;
-      }
-    }
-
-    if (this._socketConnection) {
-      this._socketConnection.send( message );
-      return true;
     }
 
     return false;

@@ -1,0 +1,22 @@
+.quote-font {
+  font-family: Oswald,sans-serif;
+  font-size: 18pt;
+}
+
+.price-font {
+  font-family: Noto Sans,sans-serif;
+  font-size: 18pt;
+}
+
+.small-font {
+  font-family: Verdana;
+  font-size: 7pt;
+}
+
+.downTrend {
+  color: #d9534f;
+}
+
+.upTrend {
+  color: #43ce19;
+}

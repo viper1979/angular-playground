@@ -1,16 +1,16 @@
 /* tslint:disable:no-unused-variable */
 
 import { TestBed, async, inject } from '@angular/core/testing';
-import { QuoteService } from './quote.service';
+import { BitfenixService } from './bitfenix.service';
 
 describe('Service: Quote', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
-      providers: [QuoteService]
+      providers: [BitfenixService]
     });
   });
 
-  it('should ...', inject([QuoteService], (service: QuoteService) => {
+  it('should ...', inject([BitfenixService], (service: BitfenixService) => {
     expect(service).toBeTruthy();
   }));
 });

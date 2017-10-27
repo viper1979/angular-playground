@@ -2,9 +2,10 @@ import { Component, OnInit } from '@angular/core';
 import { Http } from '@angular/http';
 import { Observable } from 'rxjs/Observable';
 import { Observer } from 'rxjs/Rx';
-import 'rxjs/Rx';
 import { BehaviorSubject } from 'rxjs/BehaviorSubject';
 import { BitfenixService } from 'app/api/bitfenix/bitfenix.service';
+import { AutoCompleteModule } from 'primeng/primeng';
+import 'rxjs/Rx';
 
 @Component({
   selector: 'app-root',
@@ -14,6 +15,11 @@ import { BitfenixService } from 'app/api/bitfenix/bitfenix.service';
 export class AppComponent implements OnInit {
   title = 'app';
   foobar = 'hello world';
+
+  bitfinexSymbol: string = 'BTCUSD';
+  filteredSymbols: string[] = [];
+
+
 
   movies: string[] = ['Star Wars', 'Star Trek', 'Shrek'];
   filteredMovies: string[] = [];
@@ -27,6 +33,7 @@ export class AppComponent implements OnInit {
 
   ngOnInit( ) {
     this._onDateUpdate = new BehaviorSubject<Date>( new Date( ) );
+    this.filteredSymbols = this._quoteService.getAvailableSymbols();
 
     // setInterval(() => {
     //   this._onDateUpdate.next( new Date( ) );
@@ -94,5 +101,22 @@ export class AppComponent implements OnInit {
     // let apiUrl: string = `https://www.bitstamp.net/api/v2/ticker/${from.toUpperCase()}${to.toUpperCase()}`;
     let apiUrl: string = `https://bitcoinfees.21.co/api/v1/fees/recommended`;
     return this._http.get(apiUrl).map(response => { let json = response.json(); json.fromCurrency = from; json.toCurrency = to; return json; } );
+  }
+
+  filterSymbols(event) {
+    if (!this.bitfinexSymbol || this.bitfinexSymbol.length === 0 ) {
+      this.filteredSymbols = this._quoteService.getAvailableSymbols( );
+    }
+
+    this.filteredSymbols = this._quoteService.getAvailableSymbols( ).filter( item => {
+      if (item.toUpperCase().indexOf( this.bitfinexSymbol.toUpperCase( ) ) >= 0 ) {
+        return true;
+      }
+      return false;
+    })
+  }
+
+  changeDisplaySymbol(event) {
+    console.log('changeDisplaySymbol | symbol: ' + event);
   }
 }

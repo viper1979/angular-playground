@@ -13,7 +13,7 @@
     <!-- <tr *ngFor="let trade of lastTrades" [ngClass]="{ 'danger': trade.orderType === 'SELL', 'success': trade.orderType === 'BUY', 'slide-in-bck-center': true }"> -->
     <tr *ngFor="let trade of lastTrades" [ngClass]="{ 'sell': trade.orderType === 'SELL', 'buy': trade.orderType === 'BUY', 'slide-in-bck-center': true }">
       <!-- <td>{{trade.tradeId}}</td> -->
-      <td>{{trade.timestamp | date:'HH:mm:ss'}}</td>
+      <td class="text-center">{{trade.timestamp | date:'HH:mm:ss'}}</td>
       <td>
         <i class="fa fa-caret-square-o-up" aria-hidden="true" *ngIf="trade.orderType==='BUY'"></i>
         <i class="fa fa-caret-square-o-down" aria-hidden="true" *ngIf="trade.orderType==='SELL'"></i>
@@ -21,16 +21,16 @@
       </td>
       <td class="text-right">
         {{trade.orderPrice | number:'1.2-2'}}
-        <i class="fa fa-usd" aria-hidden="true"></i>
+        <span [innerHTML]="symbol.substring(3) | currencySymbol"></span>
       </td>
       <td class="text-right">
         {{trade.amount | number:'1.4-4'}}
-        <i class="fa fa-btc" aria-hidden="true"></i>
+        <span [innerHTML]="symbol.substring(0,3) | currencySymbol"></span>
       </td>
       <td class="text-right">
         <div [ngClass]="{ 'blink-1': (trade.amount * trade.orderPrice) > 5000 }">
           {{(trade.amount * trade.orderPrice) | number:'1.2-2'}}
-          <i class="fa fa-usd" aria-hidden="true"></i>
+          <span [innerHTML]="symbol.substring(3) | currencySymbol"></span>
         </div>
       </td>
     </tr>
