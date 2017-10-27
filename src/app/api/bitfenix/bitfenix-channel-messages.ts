@@ -71,4 +71,18 @@ export class BookMessage extends BitfenixChannelMessage {
 }
 
 export class TickerMessage extends BitfenixChannelMessage {
+  bid: number;
+  bidSize: number;
+  ask: number;
+  askSize: number;
+  dailyChange: number;
+  dailyChangePercent: number;
+  lastPrice: number;
+  volume: number;
+  high: number;
+  low: number;
+
+  constructor() {
+    super();
+  }
 }

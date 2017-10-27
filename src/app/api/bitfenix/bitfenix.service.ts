@@ -23,6 +23,8 @@ export class BitfenixService {
   }
 
   getTradeListener( fromCurrency: string, toCurrency: string ): BitfenixChannelSubscription {
+    console.log( 'BitfinexService | getTradeListener | fromCurrency: ' + fromCurrency + ' toCurrency: ' + toCurrency);
+
     let pair = fromCurrency.toUpperCase( ) + toCurrency.toUpperCase( );
 
     let tradeChannels = Array.from( this._activeSubscriptions.values( ) ).filter( item => (item as BitfenixTradeChannel) !== undefined ) as BitfenixTradeChannel[];
@@ -32,7 +34,7 @@ export class BitfenixService {
       channel = new BitfenixTradeChannel( );
       channel.pair = fromCurrency + toCurrency;
       // channel.symbol = 't' + channel.pair;
-      this._queuedSubscriptions.set( channel.pair, channel );
+      this._queuedSubscriptions.set( 'trades_' + channel.pair, channel );
 
       if (this._socketConnection && this._socketConnection.readyState === 1 ) {
         this._socketConnection.send( channel.getSubscribeMessage( ) );
@@ -43,6 +45,8 @@ export class BitfenixService {
   }
 
   getTickerListener( fromCurrency: string, toCurrency: string ): BitfenixChannelSubscription {
+    console.log( 'BitfinexService | getTickerListener | fromCurrency: ' + fromCurrency + ' toCurrency: ' + toCurrency);
+
     let pair = fromCurrency.toUpperCase( ) + toCurrency.toUpperCase( );
 
     let tradeChannels = Array.from( this._activeSubscriptions.values( ) ).filter( item => (item as BitfenixTickerChannel) !== undefined ) as BitfenixTickerChannel[];
@@ -50,9 +54,9 @@ export class BitfenixService {
 
     if (!channel) {
       channel = new BitfenixTickerChannel( );
-      channel.pair = fromCurrency + toCurrency;
-      // channel.symbol = 't' + channel.pair;
-      this._queuedSubscriptions.set( channel.pair, channel );
+      channel.pair = pair;
+      channel.symbol = 't' + pair;
+      this._queuedSubscriptions.set( 'ticker_' + channel.symbol, channel );
 
       if (this._socketConnection && this._socketConnection.readyState === 1 ) {
         this._socketConnection.send( channel.getSubscribeMessage( ) );
@@ -207,13 +211,14 @@ export class BitfenixService {
 
     let pair = parsedMessage.pair;
     let symbol = parsedMessage.symbol;
+    let channel = parsedMessage.channel;
     let cacheKey: string;
 
-    if (this._queuedSubscriptions.has(pair)) {
-      cacheKey = pair;
+    if (this._queuedSubscriptions.has(channel + '_' + pair)) {
+      cacheKey = channel + '_' + pair;
     }
-    if (this._queuedSubscriptions.has(symbol)) {
-      cacheKey = symbol;
+    if (this._queuedSubscriptions.has(channel + '_' + symbol)) {
+      cacheKey = channel + '_' + symbol;
     }
 
     if (cacheKey && cacheKey.length > 0) {

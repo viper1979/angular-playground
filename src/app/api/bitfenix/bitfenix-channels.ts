@@ -1,5 +1,5 @@
 import { BehaviorSubject, Observable } from 'rxjs/Rx';
-import { BitfenixChannelMessage, TradeMessage } from 'app/api/bitfenix/bitfenix-channel-messages';
+import { BitfenixChannelMessage, TradeMessage, TickerMessage } from 'app/api/bitfenix/bitfenix-channel-messages';
 import { EventEmitter } from '@angular/core';
 
 export class BitfenixChannelSubscription {
@@ -129,7 +129,25 @@ export class BitfenixTickerChannel extends BitfenixChannel {
   }
 
   public sendMessage( parsedMessage: any ): void {
-    console.log( 'BitfenixTickerChannel | sendMessage | TODO: send message')
+    console.log( 'TickerMessage | sendMessage | parsedMessage: ' + JSON.stringify(parsedMessage) );
+
+    if (parsedMessage) {
+      let tradeMessage = new TickerMessage( );
+      tradeMessage.channelId = parsedMessage[0];
+      tradeMessage.messageType = 'ticker';
+      tradeMessage.bid = parsedMessage[1][0];
+      tradeMessage.bidSize = parsedMessage[1][1];
+      tradeMessage.ask = parsedMessage[1][2];
+      tradeMessage.askSize = parsedMessage[1][3];
+      tradeMessage.dailyChange = parsedMessage[1][4];
+      tradeMessage.dailyChangePercent = parsedMessage[1][5];
+      tradeMessage.lastPrice = parsedMessage[1][6];
+      tradeMessage.volume = parsedMessage[1][7];
+      tradeMessage.high = parsedMessage[1][8];
+      tradeMessage.low = parsedMessage[1][9];
+
+      this.listener.next( tradeMessage );
+    }
   }
 }
 

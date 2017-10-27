@@ -11,7 +11,7 @@ import { TickerComponent } from './ticker/ticker.component';
   declarations: [
     AppComponent,
     ServiceProblemsComponent,
-    QuoteComponent,
+    QuoteComponent,
     TickerComponent
 ],
   imports: [

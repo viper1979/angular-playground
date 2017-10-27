@@ -1,3 +1,49 @@
-<p>
-  ticker works!
-</p>
+<table class="table table-sm" *ngIf="tickerMessage">
+  <thead>
+    <tr>
+      <th colspan="2">{{fromCurrency}} - {{toCurrency}}</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Bid</td>
+      <td>{{tickerMessage.bid}}</td>
+    </tr>
+    <tr>
+     <td>BidSize</td>
+     <td>{{tickerMessage.bidSize}}</td>
+    </tr>
+    <tr>
+      <td>Ask</td>
+      <td>{{tickerMessage.ask}}</td>
+    </tr>
+    <tr>
+      <td>AskSize</td>
+      <td>{{tickerMessage.askSize}}</td>
+    </tr>
+    <tr>
+      <td>DailyChange</td>
+      <td>{{tickerMessage.dailyChange}}</td>
+    </tr>
+    <tr>
+      <td>DailyChangePercent</td>
+      <td>{{tickerMessage.dailyChangePercent}}</td>
+    </tr>
+    <tr>
+      <td>LastPrice</td>
+      <td>{{tickerMessage.lastPrice}}</td>
+    </tr>
+    <tr>
+      <td>Volume</td>
+      <td>{{tickerMessage.volume}}</td>
+    </tr>
+    <tr>
+      <td>High</td>
+      <td>{{tickerMessage.high}}</td>
+    </tr>
+    <tr>
+      <td>Low</td>
+      <td>{{tickerMessage.low}}</td>
+    </tr>
+  </tbody>
+</table>
