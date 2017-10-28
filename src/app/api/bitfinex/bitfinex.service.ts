@@ -1,12 +1,12 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject } from 'rxjs/BehaviorSubject';
 import { Observable } from 'rxjs/Observable';
-import { BitfenixChannel, BitfenixTradeChannel, BitfenixTickerChannel, BitfenixChannelSubscription, BitfenixBooksChannel } from 'app/api/bitfenix/bitfenix-channels';
-import { BitfenixChannelMessage, TradeMessage } from 'app/api/bitfenix/bitfenix-channel-messages';
+import { BitfinexChannel, BitfinexTradeChannel, BitfinexTickerChannel, BitfinexChannelSubscription, BitfinexBooksChannel } from 'app/api/bitfinex/bitfinex-channels';
+import { BitfinexChannelMessage, TradeMessage } from 'app/api/bitfinex/bitfinex-channel-messages';
 import 'rxjs/Rx';
 
 @Injectable()
-export class BitfenixService {
+export class BitfinexService {
   private _this;
   private _apiUrl: string = 'wss://api.bitfinex.com/ws/2';
   private _socketConnection: WebSocket;
@@ -18,12 +18,12 @@ export class BitfenixService {
     'EDOUSD', 'EDOBTC', 'EDOETH', 'BTGUSD', 'BTGBTC'
   ];
 
-  private _activeSubscriptions: Map<number, BitfenixChannel>;
-  private _queuedSubscriptions: Map<string, BitfenixChannel>;
+  private _activeSubscriptions: Map<number, BitfinexChannel>;
+  private _queuedSubscriptions: Map<string, BitfinexChannel>;
 
   constructor() {
-    this._activeSubscriptions = new Map<number, BitfenixChannel>( );
-    this._queuedSubscriptions = new Map<string, BitfenixChannel>( );
+    this._activeSubscriptions = new Map<number, BitfinexChannel>( );
+    this._queuedSubscriptions = new Map<string, BitfinexChannel>( );
 
     if (this.initBitfenix( )) {
     }
@@ -33,14 +33,14 @@ export class BitfenixService {
     return this._availableSymbols;
   }
 
-  getTradeListener( symbol: string ): BitfenixChannelSubscription {
+  getTradeListener( symbol: string ): BitfinexChannelSubscription {
     console.log( 'BitfinexService | getTradeListener | symbol: ' + symbol);
 
-    let tradeChannels = Array.from( this._activeSubscriptions.values( ) ).filter( item => (item as BitfenixTradeChannel) !== undefined ) as BitfenixTradeChannel[];
+    let tradeChannels = Array.from( this._activeSubscriptions.values( ) ).filter( item => (item as BitfinexTradeChannel) !== undefined ) as BitfinexTradeChannel[];
     let channel = tradeChannels.find( item => item.symbol === symbol );
 
     if (!channel) {
-      channel = new BitfenixTradeChannel( );
+      channel = new BitfinexTradeChannel( );
       channel.pair = symbol
       channel.symbol = 't' + symbol;
       this._queuedSubscriptions.set( 'trades_' + symbol, channel );
@@ -53,14 +53,14 @@ export class BitfenixService {
     return channel.getSubscription( );
   }
 
-  getTickerListener( symbol: string ): BitfenixChannelSubscription {
+  getTickerListener( symbol: string ): BitfinexChannelSubscription {
     console.log( 'BitfinexService | getTickerListener | symbol: ' + symbol );
 
-    let tradeChannels = Array.from( this._activeSubscriptions.values( ) ).filter( item => (item as BitfenixTickerChannel) !== undefined ) as BitfenixTickerChannel[];
+    let tradeChannels = Array.from( this._activeSubscriptions.values( ) ).filter( item => (item as BitfinexTickerChannel) !== undefined ) as BitfinexTickerChannel[];
     let channel = tradeChannels.find( item => item.symbol === symbol );
 
     if (!channel) {
-      channel = new BitfenixTickerChannel( );
+      channel = new BitfinexTickerChannel( );
       channel.pair = symbol;
       channel.symbol = 't' + symbol;
       this._queuedSubscriptions.set( 'ticker_' + channel.symbol, channel );
@@ -73,16 +73,15 @@ export class BitfenixService {
     return channel.getSubscription( );
   }
 
-  getBooksListener( symbol: string, options?: { prec: string, freq: string, length: string} ): BitfenixChannelSubscription {
-    let booksChannels = Array.from( this._activeSubscriptions.values( ) ).filter( item => (item as BitfenixBooksChannel) !== undefined ) as BitfenixBooksChannel[];
+  getBooksListener( symbol: string, options?: { prec: string, freq: string, length: string} ): BitfinexChannelSubscription {
+    let booksChannels = Array.from( this._activeSubscriptions.values( ) ).filter( item => (item as BitfinexBooksChannel) !== undefined ) as BitfinexBooksChannel[];
     let channel = booksChannels.find( item => item.symbol === symbol );
 
     if (!channel) {
-      channel = new BitfenixBooksChannel( );
+      channel = new BitfinexBooksChannel( );
       channel.pair = symbol;
       channel.symbol = 't' + symbol;
-
-      this._queuedSubscriptions.set( channel.symbol, channel );
+      this._queuedSubscriptions.set( 'book_' + channel.symbol, channel );
 
       if (this._socketConnection && this._socketConnection.readyState === 1 ) {
         this._socketConnection.send( channel.getSubscribeMessage( options ) );
@@ -92,7 +91,7 @@ export class BitfenixService {
     return channel.getSubscription( );
   }
 
-  unsubscribe( subscription: BitfenixChannelSubscription ): boolean {
+  unsubscribe( subscription: BitfinexChannelSubscription ): boolean {
     if (this._activeSubscriptions.has( subscription.channelId )) {
       let channel = this._activeSubscriptions.get( subscription.channelId );
 
@@ -162,18 +161,16 @@ export class BitfenixService {
             this._activeSubscriptions.get(channelId).sendMessage( parsedMessage );
           }
         }
-
-        let tradeMessage = BitfenixChannelMessage.create(parsedMessage);
-        console.log( 'QuoteService | onMessage: ' + JSON.stringify(tradeMessage));
+        // console.log( 'BitfinexService | onMessage: ' + JSON.stringify(parsedMessage));
       }
     }
   }
 
   private onOpen(event: Event) {
-    console.log( 'QuoteService | onOpen: ' + JSON.stringify(event));
+    console.log( 'BitfinexService | onOpen: ' + JSON.stringify(event));
 
     if (this._queuedSubscriptions.size > 0) {
-      console.log( 'Items in queue: ' + this._queuedSubscriptions.size);
+      console.log( 'BitfinexService | Items in queue: ' + this._queuedSubscriptions.size);
 
       this._queuedSubscriptions.forEach( item => {
         this._socketConnection.send( item.getSubscribeMessage( ) );
@@ -182,11 +179,11 @@ export class BitfenixService {
   }
 
   private onClose(event: CloseEvent): any {
-    console.log( 'QuoteService | onClose: ' + JSON.stringify(event));
+    console.log( 'BitfinexService | onClose: ' + JSON.stringify(event));
   }
 
   private onError(event: Event): any {
-    console.log( 'QuoteService | onError: ' + JSON.stringify(event));
+    console.log( 'BitfinexService | onError: ' + JSON.stringify(event));
   }
 
   /***/

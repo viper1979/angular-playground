@@ -1,16 +1,35 @@
 <link href="https://fonts.googleapis.com/css?family=Noto+Sans|Oswald|Amatic+SC" rel="stylesheet">
 
-<p-autoComplete [(ngModel)]="bitfinexSymbol" [suggestions]="filteredSymbols" (completeMethod)="filterSymbols($event)" (onSelect)="changeDisplaySymbol($event)" placeholder="BTCUSD" [dropdown]="true">
-    <ng-template let-symbol pTemplate="item">
-        <div class="ui-helper-clearfix" style="border-bottom:1px solid #D5D5D5">
-            {{symbol}}
-        </div>
-    </ng-template>
-</p-autoComplete>
+<div>
+  <p-autoComplete [(ngModel)]="bitfinexSymbol" [suggestions]="filteredSymbols" (completeMethod)="filterSymbols($event)" (onSelect)="changeDisplaySymbol($event)" placeholder="BTCUSD" [dropdown]="true">
+      <ng-template let-symbol pTemplate="item">
+          <div class="ui-helper-clearfix" style="border-bottom:1px solid #D5D5D5">
+              {{symbol}}
+          </div>
+      </ng-template>
+  </p-autoComplete>
+</div>
 
 <hr>
 
-<div class="container-fluid">
+
+  <div class="row">
+    <div class="col-md-3 col-md-offset-1">
+      <app-ticker [symbol]="bitfinexSymbol">
+      </app-ticker>
+    </div>
+    <div class="col-md-3">
+      <app-quote [symbol]="bitfinexSymbol">
+      </app-quote>
+    </div>
+    <div class="col-md-3">
+      <app-orderbook [symbol]="bitfinexSymbol">
+      </app-orderbook>
+    </div>
+  </div>
+
+
+<!-- <div class="container-fluid">
   <div class="row">
     <div class="col-xs-6 col-md-3">
         <app-ticker [symbol]="bitfinexSymbol">
@@ -29,3 +48,14 @@
     </div>
   </div>
 </div>
+
+<br>
+
+<div class="container-fluid">
+  <div class="row">
+    <div class="col-xs-6 col-md-3">
+      <app-orderbook [symbol]="bitfinexSymbol">
+      </app-orderbook>
+    </div>
+  </div>
+</div> -->

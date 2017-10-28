@@ -1,7 +1,7 @@
 import { Component, Input, OnInit, OnChanges, OnDestroy, SimpleChanges } from '@angular/core';
-import { BitfenixService } from 'app/api/bitfenix/bitfenix.service';
-import { BitfenixChannelSubscription } from 'app/api/bitfenix/bitfenix-channels';
-import { TickerMessage } from 'app/api/bitfenix/bitfenix-channel-messages';
+import { BitfinexService } from 'app/api/bitfinex/bitfinex.service';
+import { BitfinexChannelSubscription } from 'app/api/bitfinex/bitfinex-channels';
+import { TickerMessage } from 'app/api/bitfinex/bitfinex-channel-messages';
 import { Subscription } from 'rxjs/Subscription';
 
 @Component({
@@ -11,14 +11,16 @@ import { Subscription } from 'rxjs/Subscription';
 })
 export class TickerComponent implements OnInit, OnChanges, OnDestroy {
   private _subscription: Subscription;
-  private _bitfenixSubscription: BitfenixChannelSubscription;
+  private _bitfinexSubscription: BitfinexChannelSubscription;
 
   tickerMessage: TickerMessage;
 
   @Input( )
   symbol: string;
 
-  constructor(private _tickerService: BitfenixService) { }
+  symbolToDisplay: string;
+
+  constructor(private _tickerService: BitfinexService) { }
 
   ngOnInit() {
   }
@@ -27,13 +29,20 @@ export class TickerComponent implements OnInit, OnChanges, OnDestroy {
     console.log('TickerComponent | ngOnChanges | changes: ' + JSON.stringify(changes) );
 
     if (changes.symbol.currentValue.length === 6) {
-      if (this._bitfenixSubscription) {
-        this._tickerService.unsubscribe(this._bitfenixSubscription);
+      if (this._bitfinexSubscription) {
+        this._tickerService.unsubscribe(this._bitfinexSubscription);
       }
 
+      this.symbolToDisplay = changes.symbol.currentValue;
+
       console.log( 'TickerComponent | ngOnChanges | Trying to subscribe to symbol: ' + this.symbol);
-      this._bitfenixSubscription = this._tickerService.getTickerListener( this.symbol );
-      this._bitfenixSubscription.listener.subscribe(
+      this._bitfinexSubscription = this._tickerService.getTickerListener( this.symbol );
+
+      this._bitfinexSubscription.heartbeat.subscribe(
+        hb => console.log( 'TickerComponent | Channel \'' + hb.channel + '\' heartbeat @ ' + hb.timestamp )
+      );
+
+      this._bitfinexSubscription.listener.subscribe(
         next => {
           let tickerMessage: TickerMessage = next as TickerMessage;
           this.tickerMessage = tickerMessage;

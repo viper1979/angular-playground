@@ -1,9 +1,10 @@
 import { BehaviorSubject, Observable } from 'rxjs/Rx';
-import { BitfenixChannelMessage, TradeMessage, TickerMessage, BookMessage } from 'app/api/bitfenix/bitfenix-channel-messages';
+import { BitfinexChannelMessage, TradeMessage, TickerMessage, BookMessage } from 'app/api/bitfinex/bitfinex-channel-messages';
 import { EventEmitter } from '@angular/core';
 
-export class BitfenixChannelSubscription {
-  protected readonly _channel: BitfenixChannel;
+export class BitfinexChannelSubscription {
+  protected readonly _channel: BitfinexChannel;
+  public heartbeat: EventEmitter<{channel: string, timestamp: Date}>;
 
   get channelId(): number {
     return this._channel.channelId;
@@ -13,23 +14,28 @@ export class BitfenixChannelSubscription {
   }
 
   public readonly pair: string;
-  public readonly listener: Observable<BitfenixChannelMessage>;
+  public readonly listener: Observable<BitfinexChannelMessage>;
 
-  constructor( channel: BitfenixChannel, pair: string, listener: Observable<BitfenixChannelMessage> ) {
+  constructor( channel: BitfinexChannel, pair: string, listener: Observable<BitfinexChannelMessage> ) {
     this._channel = channel;
     this.pair = pair;
     this.listener = listener;
+
+    this.heartbeat = new EventEmitter<{channel: string, timestamp: Date}>( );
+    this._channel.heartbeat.subscribe( event => {
+      this.heartbeat.emit( event );
+    })
   }
 }
 
-export abstract class BitfenixChannel {
+export abstract class BitfinexChannel {
   public channelId: number;
   public channel: string;
   public heartbeat: EventEmitter<{channel: string, timestamp: Date}>;
-  protected subscription: BitfenixChannelSubscription;
+  protected subscription: BitfinexChannelSubscription;
 
   abstract getSubscribeMessage( options?: any ): string;
-  abstract getSubscription( ): BitfenixChannelSubscription;
+  abstract getSubscription( ): BitfinexChannelSubscription;
   abstract sendMessage( parsedMessage: any ): void;
 
   public sendHeartbeat( ): void {
@@ -48,17 +54,17 @@ export abstract class BitfenixChannel {
   }
 }
 
-export class BitfenixTradeChannel extends BitfenixChannel {
+export class BitfinexTradeChannel extends BitfinexChannel {
   public symbol: string;
   public pair: string;
-  private listener: BehaviorSubject<BitfenixChannelMessage>;
+  private listener: BehaviorSubject<BitfinexChannelMessage>;
   private isSubscribed: boolean;
 
   constructor( ) {
     super();
 
     this.isSubscribed = false;
-    this.listener = new BehaviorSubject<BitfenixChannelMessage>( null );
+    this.listener = new BehaviorSubject<BitfinexChannelMessage>( null );
   }
 
   public getSubscribeMessage( options?: any ): string {
@@ -69,9 +75,9 @@ export class BitfenixTradeChannel extends BitfenixChannel {
     });
   }
 
-  public getSubscription( ): BitfenixChannelSubscription {
+  public getSubscription( ): BitfinexChannelSubscription {
     let listener = this.listener.filter( item => item !== null );
-    return new BitfenixChannelSubscription( this, this.pair, listener );
+    return new BitfinexChannelSubscription( this, this.pair, listener );
   }
 
   public sendMessage( parsedMessage: any ): void {
@@ -105,17 +111,17 @@ export class BitfenixTradeChannel extends BitfenixChannel {
   }
 }
 
-export class BitfenixTickerChannel extends BitfenixChannel {
+export class BitfinexTickerChannel extends BitfinexChannel {
   public symbol: string;
   public pair: string;
-  private listener: BehaviorSubject<BitfenixChannelMessage>;
+  private listener: BehaviorSubject<BitfinexChannelMessage>;
   private isSubscribed: boolean;
 
   constructor( ) {
     super();
 
     this.isSubscribed = false;
-    this.listener = new BehaviorSubject<BitfenixChannelMessage>( null );
+    this.listener = new BehaviorSubject<BitfinexChannelMessage>( null );
   }
 
   public getSubscribeMessage( options?: any ): string {
@@ -126,9 +132,9 @@ export class BitfenixTickerChannel extends BitfenixChannel {
     });
   }
 
-  public getSubscription( ): BitfenixChannelSubscription {
+  public getSubscription( ): BitfinexChannelSubscription {
     let listener = this.listener.filter( item => item !== null );
-    return new BitfenixChannelSubscription( this, this.pair, listener );
+    return new BitfinexChannelSubscription( this, this.pair, listener );
   }
 
   public sendMessage( parsedMessage: any ): void {
@@ -154,17 +160,17 @@ export class BitfenixTickerChannel extends BitfenixChannel {
   }
 }
 
-export class BitfenixBooksChannel extends BitfenixChannel {
+export class BitfinexBooksChannel extends BitfinexChannel {
   public symbol: string;
   public pair: string;
-  private listener: BehaviorSubject<BitfenixChannelMessage>;
+  private listener: BehaviorSubject<BitfinexChannelMessage>;
   private isSubscribed: boolean;
 
   constructor( ) {
     super();
 
     this.isSubscribed = false;
-    this.listener = new BehaviorSubject<BitfenixChannelMessage>( null );
+    this.listener = new BehaviorSubject<BitfinexChannelMessage>( null );
   }
 
   public getSubscribeMessage( options?: any ): string {
@@ -192,16 +198,16 @@ export class BitfenixBooksChannel extends BitfenixChannel {
     return JSON.stringify(message);
   }
 
-  public getSubscription( ): BitfenixChannelSubscription {
+  public getSubscription( ): BitfinexChannelSubscription {
     let listener = this.listener.filter( item => item !== null );
-    return new BitfenixChannelSubscription( this, this.symbol, listener );
+    return new BitfinexChannelSubscription( this, this.symbol, listener );
   }
 
   public sendMessage( parsedMessage: any ): void {
     console.log( 'BitfenixBooksChannel | sendMessage | parsedMessage: ' + JSON.stringify(parsedMessage) );
 
     if (parsedMessage) {
-      if (parsedMessage[1] instanceof Array) {
+      if (parsedMessage[1][0] instanceof Array) {
         parsedMessage[1].forEach(element => {
           let bookMessage = new BookMessage( );
           bookMessage.channelId = parsedMessage[0];

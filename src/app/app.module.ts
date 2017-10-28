@@ -3,9 +3,8 @@ import { FormsModule } from '@angular/forms';
 import { HttpModule } from '@angular/http';
 import { NgModule, LOCALE_ID } from '@angular/core';
 import { AppComponent } from './app.component';
-import { ServiceProblemsComponent } from './serviceProblems/serviceProblems.component';
 import { QuoteComponent } from './quote/quote.component';
-import { BitfenixService } from 'app/api/bitfenix/bitfenix.service';
+import { BitfinexService } from 'app/api/bitfinex/bitfinex.service';
 import { TickerComponent } from './ticker/ticker.component';
 import { OrderbookComponent } from './orderbook/orderbook.component';
 
@@ -15,7 +14,6 @@ import { CurrencySymbolPipe } from 'app/shared/pipes/currencySymbol.pipe';
 @NgModule({
   declarations: [
     AppComponent,
-    ServiceProblemsComponent,
     QuoteComponent,
     TickerComponent,
     OrderbookComponent,
@@ -31,7 +29,7 @@ import { CurrencySymbolPipe } from 'app/shared/pipes/currencySymbol.pipe';
   ],
   providers: [
     { provide: LOCALE_ID, useValue: 'de-DE' },
-    BitfenixService
+    BitfinexService
   ],
   bootstrap: [AppComponent]
 })

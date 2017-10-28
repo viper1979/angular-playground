@@ -3,7 +3,7 @@ import { Http } from '@angular/http';
 import { Observable } from 'rxjs/Observable';
 import { Observer } from 'rxjs/Rx';
 import { BehaviorSubject } from 'rxjs/BehaviorSubject';
-import { BitfenixService } from 'app/api/bitfenix/bitfenix.service';
+import { BitfinexService } from 'app/api/bitfinex/bitfinex.service';
 import { AutoCompleteModule } from 'primeng/primeng';
 import 'rxjs/Rx';
 
@@ -28,7 +28,7 @@ export class AppComponent implements OnInit {
 
   constructor(
     private _http: Http,
-    private _quoteService: BitfenixService) {
+    private _quoteService: BitfinexService) {
   }
 
   ngOnInit( ) {

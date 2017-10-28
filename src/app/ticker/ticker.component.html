@@ -1,99 +1,43 @@
-<!-- <table class="table table-sm" *ngIf="tickerMessage">
-  <thead>
-    <tr>
-      <th colspan="2">{{symbol}}</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td>Bid</td>
-      <td>{{tickerMessage.bid}}</td>
-    </tr>
-    <tr>
-     <td>BidSize</td>
-     <td>{{tickerMessage.bidSize}}</td>
-    </tr>
-    <tr>
-      <td>Ask</td>
-      <td>{{tickerMessage.ask}}</td>
-    </tr>
-    <tr>
-      <td>AskSize</td>
-      <td>{{tickerMessage.askSize}}</td>
-    </tr>
-    <tr>
-      <td>DailyChange</td>
-      <td>{{tickerMessage.dailyChange}}</td>
-    </tr>
-    <tr>
-      <td>DailyChangePercent</td>
-      <td>{{tickerMessage.dailyChangePercent}}</td>
-    </tr>
-    <tr>
-      <td>LastPrice</td>
-      <td>{{tickerMessage.lastPrice}}</td>
-    </tr>
-    <tr>
-      <td>Volume</td>
-      <td>{{tickerMessage.volume}}</td>
-    </tr>
-    <tr>
-      <td>High</td>
-      <td>{{tickerMessage.high}}</td>
-    </tr>
-    <tr>
-      <td>Low</td>
-      <td>{{tickerMessage.low}}</td>
-    </tr>
-  </tbody>
-</table> -->
+<div class="row">
+  <div class="col-xs-4 col-xs-offset-2 quote-font">
+    {{symbolToDisplay}}
+  </div>
+  <div class="col-xs-4 text-right price-font">
+    <b>{{tickerMessage.lastPrice | number:'1.2-2'}}</b>
+  </div>
+</div>
 
+<div class="row">
+  <div class="col-xs-4 col-xs-offset-2 small-font">
+    24H vol: {{tickerMessage.volume | number:'1.0-0'}}
+  </div>
 
+  <div class="col-xs-4 text-right small-font" [ngClass]="{ 'downTrend': tickerMessage.dailyChange < 0, 'upTrend': tickerMessage.dailyChange >= 0 }">
+    {{tickerMessage.dailyChange | number:'1.2-2'}}
+    <span>&nbsp;</span>
+    {{tickerMessage.dailyChangePercent | number:'1.2-2'}} %
+  </div>
+</div>
 
-    <div class="row">
-        <div class="col-xs-4 col-xs-offset-2 quote-font">
-            {{symbol}}
-        </div>
-        <div class="col-xs-4 text-right price-font">
-            <b>{{tickerMessage.lastPrice | number:'1.2-2'}}</b>
-        </div>
-    </div>
+<div class="row">
+  <div class="col-xs-8 col-xs-offset-2" style="border-bottom: solid 1px"></div>
+  <div class="col-xs-2"></div>
+</div>
 
-    <div  class="row">
-      <div  class="col-xs-4 col-xs-offset-2 small-font">
-          24H vol: {{tickerMessage.volume | number:'1.0-0'}}
-      </div>
+<div class="row">
+  <div class="col-xs-4 col-xs-offset-2">
+    <span class="label label-success small-font">H <i class="fa fa-arrow-up"></i> {{tickerMessage.high | number:'1.2-2'}}</span>
+  </div>
+  <div class="col-xs-4 text-right">
+    <span class="label label-default small-font">B <i class="fa fa-arrow-right"></i> {{tickerMessage.bid | number:'1.2-2'}}</span>
+  </div>
+</div>
 
-      <div  class="col-xs-4 text-right small-font" [ngClass]="{ 'downTrend': tickerMessage.dailyChange < 0, 'upTrend': tickerMessage.dailyChange >= 0 }">
-        {{tickerMessage.dailyChange | number:'1.2-2'}}
-        <span >&nbsp;</span>
-        {{tickerMessage.dailyChangePercent | number:'1.2-2'}} %
-      </div>
-    </div>
-
-    <div  class="row">
-        <div  class="col-xs-8 col-xs-offset-2" style="border-bottom: solid 1px"></div>
-        <div  class="col-xs-2"></div>
-    </div>
-
-    <div class="row">
-      <div class="col-xs-4 col-xs-offset-2">
-        <span class="label label-success small-font">H <i  class="fa fa-arrow-up"></i> {{tickerMessage.high | number:'1.2-2'}}</span>
-      </div>
-      <div  class="col-xs-4 text-right">
-        <span  class="label label-default small-font">B <i  class="fa fa-arrow-right"></i> {{tickerMessage.bid | number:'1.2-2'}}</span>
-      </div>
-    </div>
-
-    <div  class="row">
-      <div  class="col-xs-4 col-xs-offset-2">
-        <span  class="label label-danger small-font">L <i  class="fa fa-arrow-down"></i> {{tickerMessage.low | number:'1.2-2'}}</span>
-      </div>
-      <div  class="col-xs-4 text-right">
-        <span  class="label label-default small-font">A <i  class="fa fa-arrow-left"></i> {{tickerMessage.ask | number:'1.2-2'}}</span>
-      </div>
-    </div>
-
-
-
-
+<div  class="row">
+  <div  class="col-xs-4 col-xs-offset-2">
+    <span  class="label label-danger small-font">L <i  class="fa fa-arrow-down"></i> {{tickerMessage.low | number:'1.2-2'}}</span>
+  </div>
+  <div  class="col-xs-4 text-right">
+    <span  class="label label-default small-font">A <i  class="fa fa-arrow-left"></i> {{tickerMessage.ask | number:'1.2-2'}}</span>
+  </div>
+</div>

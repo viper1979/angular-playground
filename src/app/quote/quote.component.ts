@@ -1,7 +1,7 @@
 import { Component, Input, OnInit, OnChanges, OnDestroy, SimpleChanges } from '@angular/core';
-import { BitfenixService } from 'app/api/bitfenix/bitfenix.service';
-import { TradeMessage } from 'app/api/bitfenix/bitfenix-channel-messages';
-import { BitfenixChannelSubscription } from 'app/api/bitfenix/bitfenix-channels';
+import { BitfinexService } from 'app/api/bitfinex/bitfinex.service';
+import { TradeMessage } from 'app/api/bitfinex/bitfinex-channel-messages';
+import { BitfinexChannelSubscription } from 'app/api/bitfinex/bitfinex-channels';
 import { Subscription } from 'rxjs/Subscription';
 import 'rxjs/Rx';
 
@@ -12,14 +12,14 @@ import 'rxjs/Rx';
 })
 export class QuoteComponent implements OnInit, OnChanges, OnDestroy {
   private _subscription: Subscription;
-  private _bitfenixSubscription: BitfenixChannelSubscription;
+  private _bitfinexSubscription: BitfinexChannelSubscription;
 
   lastTrades: TradeMessage[];
 
   @Input( )
   symbol: string;
 
-  constructor(private _quoteService: BitfenixService) {
+  constructor(private _quoteService: BitfinexService) {
   }
 
   ngOnInit() {
@@ -30,23 +30,28 @@ export class QuoteComponent implements OnInit, OnChanges, OnDestroy {
     console.log('QuoteComponent | ngOnChanges | changes: ' + JSON.stringify(changes) );
 
     if (changes.symbol.currentValue.length === 6) {
-      if (this._bitfenixSubscription) {
-        this._quoteService.unsubscribe( this._bitfenixSubscription );
+      if (this._bitfinexSubscription) {
+        this._quoteService.unsubscribe( this._bitfinexSubscription );
       }
 
       console.log( 'QuoteComponent | ngOnChanges | Trying to subscribe to symbol: ' + this.symbol);
-      this._bitfenixSubscription = this._quoteService.getTradeListener( this.symbol );
-      this._bitfenixSubscription.listener.subscribe(
+      this._bitfinexSubscription = this._quoteService.getTradeListener( this.symbol );
+
+      this._bitfinexSubscription.heartbeat.subscribe(
+        hb => console.log( 'QuoteComponent | Channel \'' + hb.channel + '\' heartbeat @ ' + hb.timestamp )
+      );
+
+      this._bitfinexSubscription.listener.subscribe(
         next => {
           let tradeMessage: TradeMessage = next as TradeMessage;
 
-          if (this.lastTrades.length > 20) {
+          if (this.lastTrades.length > 24) {
             this.lastTrades.splice(-1, 1);
           }
           this.lastTrades.splice(0, 0, tradeMessage);
         },
-        error => console.log( 'QuoteComponent | ngOnInit | error: ' + JSON.stringify(error) ),
-        () => console.log( 'QuoteComponent | ngOnInit | completed' )
+        error => console.log( 'QuoteComponent | ngOnChanges | error: ' + JSON.stringify(error) ),
+        () => console.log( 'QuoteComponent | ngOnChanges | completed' )
       );
     }
   }

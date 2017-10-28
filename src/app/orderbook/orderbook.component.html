@@ -1,3 +1,42 @@
-<p>
-  orderbook works!
-</p>
+<div class="row">
+  <div class="col-md-6">
+
+      <table class="table table-hover table-bordered table-sm">
+          <thead>
+            <tr>
+            <th>Bids</th>
+            <th>Amount</th>
+            <th>Price</th>
+          </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let bid of bidBook" class="bid">
+              <td>{{bid.count}}</td>
+              <td class="text-right">{{bid.amount | number:'1.4-4'}}</td>
+              <td>{{bid.price | number:'1.2-2'}}</td>
+            </tr>
+          </tbody>
+        </table>
+
+  </div>
+  <div class="col-md-6">
+
+      <table class="table table-hover table-bordered table-sm">
+          <thead>
+            <tr>
+              <th>Price</th>
+              <th>Amount</th>
+              <th>Asks</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let ask of askBook" class="ask">
+              <td>{{ask.price | number:'1.2-2'}}</td>
+              <td class="text-right">{{ask.amount | number:'1.4-4'}}</td>
+              <td>{{ask.count}}</td>
+            </tr>
+          </tbody>
+        </table>
+
+  </div>
+</div>
