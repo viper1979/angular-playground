@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject } from 'rxjs/BehaviorSubject';
 import { Observable } from 'rxjs/Observable';
-import { BitfinexChannel, BitfinexTradeChannel, BitfinexTickerChannel, BitfinexChannelSubscription, BitfinexBooksChannel } from 'app/api/bitfinex/bitfinex-channels';
+import { BitfinexChannel, BitfinexTradeChannel, BitfinexTickerChannel, BitfinexChannelSubscription, BitfinexBooksChannel, BitfinexCandleChannel } from 'app/api/bitfinex/bitfinex-channels';
 import { BitfinexChannelMessage, TradeMessage } from 'app/api/bitfinex/bitfinex-channel-messages';
 import 'rxjs/Rx';
 
@@ -39,11 +39,15 @@ export class BitfinexService {
     let tradeChannels = Array.from( this._activeSubscriptions.values( ) ).filter( item => (item as BitfinexTradeChannel) !== undefined ) as BitfinexTradeChannel[];
     let channel = tradeChannels.find( item => item.symbol === symbol );
 
+    if (!channel && this._queuedSubscriptions.has( 'trades_t' + symbol)) {
+      channel = this._queuedSubscriptions.get( 'trades_t' + symbol) as BitfinexTradeChannel;
+    }
+
     if (!channel) {
       channel = new BitfinexTradeChannel( );
       channel.pair = symbol
       channel.symbol = 't' + symbol;
-      this._queuedSubscriptions.set( 'trades_' + symbol, channel );
+      this._queuedSubscriptions.set( 'trades_' + channel.symbol, channel );
 
       if (this._socketConnection && this._socketConnection.readyState === 1 ) {
         this._socketConnection.send( channel.getSubscribeMessage( ) );
@@ -58,6 +62,10 @@ export class BitfinexService {
 
     let tradeChannels = Array.from( this._activeSubscriptions.values( ) ).filter( item => (item as BitfinexTickerChannel) !== undefined ) as BitfinexTickerChannel[];
     let channel = tradeChannels.find( item => item.symbol === symbol );
+
+    if (!channel && this._queuedSubscriptions.has( 'ticker_t' + symbol)) {
+      channel = this._queuedSubscriptions.get( 'ticker_t' + symbol) as BitfinexTickerChannel;
+    }
 
     if (!channel) {
       channel = new BitfinexTickerChannel( );
@@ -77,6 +85,10 @@ export class BitfinexService {
     let booksChannels = Array.from( this._activeSubscriptions.values( ) ).filter( item => (item as BitfinexBooksChannel) !== undefined ) as BitfinexBooksChannel[];
     let channel = booksChannels.find( item => item.symbol === symbol );
 
+    if (!channel && this._queuedSubscriptions.has( 'book_t' + symbol)) {
+      channel = this._queuedSubscriptions.get( 'book_t' + symbol) as BitfinexBooksChannel;
+    }
+
     if (!channel) {
       channel = new BitfinexBooksChannel( );
       channel.pair = symbol;
@@ -85,6 +97,29 @@ export class BitfinexService {
 
       if (this._socketConnection && this._socketConnection.readyState === 1 ) {
         this._socketConnection.send( channel.getSubscribeMessage( options ) );
+      }
+    }
+
+    return channel.getSubscription( );
+  }
+
+  getCandleListener( symbol: string, options?: {timeframe: string}): BitfinexChannelSubscription {
+    let finalSymbol = 'trade:' + (options ? options.timeframe : '1m') + ':t' + symbol.toUpperCase();
+
+    let candleChannels = Array.from( this._activeSubscriptions.values( ) ).filter( item => (item as BitfinexCandleChannel) !== undefined ) as BitfinexCandleChannel[];
+    let channel = candleChannels.find( item => item.symbol === finalSymbol );
+
+    if (!channel && this._queuedSubscriptions.has( 'candles_' + finalSymbol)) {
+      channel = this._queuedSubscriptions.get( 'candles_' + finalSymbol) as BitfinexCandleChannel;
+    }
+
+    if (!channel) {
+      channel = new BitfinexCandleChannel( );
+      channel.symbol = finalSymbol;
+      this._queuedSubscriptions.set( 'candles_' + channel.symbol, channel );
+
+      if (this._socketConnection && this._socketConnection.readyState === 1 ) {
+        this._socketConnection.send( channel.getSubscribeMessage( ) );
       }
     }
 
@@ -193,6 +228,7 @@ export class BitfinexService {
 
     let pair = parsedMessage.pair;
     let symbol = parsedMessage.symbol;
+    let key = parsedMessage['key'];
     let channel = parsedMessage.channel;
     let cacheKey: string;
 
@@ -201,6 +237,9 @@ export class BitfinexService {
     }
     if (this._queuedSubscriptions.has(channel + '_' + symbol)) {
       cacheKey = channel + '_' + symbol;
+    }
+    if (this._queuedSubscriptions.has(channel + '_' + key)) {
+      cacheKey = channel + '_' + key;
     }
 
     if (cacheKey && cacheKey.length > 0) {

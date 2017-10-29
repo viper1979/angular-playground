@@ -1,6 +1,6 @@
 import { Component, OnInit, OnDestroy, OnChanges, SimpleChanges, Input } from '@angular/core';
 import { BitfinexService } from 'app/api/bitfinex/bitfinex.service';
-import { BookMessage, OrderBookAction } from 'app/api/bitfinex/bitfinex-channel-messages';
+import { BookMessage, OrderBookAction, TradeMessage } from 'app/api/bitfinex/bitfinex-channel-messages';
 import { BitfinexChannelSubscription } from 'app/api/bitfinex/bitfinex-channels';
 import { Subscription } from 'rxjs/Subscription';
 import 'rxjs/Rx';
@@ -11,17 +11,21 @@ import 'rxjs/Rx';
   styleUrls: ['./orderbook.component.css']
 })
 export class OrderbookComponent implements OnInit, OnChanges, OnDestroy {
-  private _subscription: Subscription;
   private _bitfinexSubscription: BitfinexChannelSubscription;
+  private _bitfinexTradeSubscription: BitfinexChannelSubscription;
 
   private _askBook: Map<number, BookMessage>;
   private _bidBook: Map<number, BookMessage>;
 
   askBook: BookMessage[];
   bidBook: BookMessage[];
+  last: TradeMessage;
 
   @Input()
   symbol: string;
+
+  @Input()
+  orientation: string;
 
   constructor(private _bitfinexService: BitfinexService) {
   }
@@ -53,30 +57,54 @@ export class OrderbookComponent implements OnInit, OnChanges, OnDestroy {
           let bookMessage: BookMessage = next as BookMessage;
 
           // TODO: do something with the message
-          console.log( 'OrderbookComponent | ngOnChanges | bookMessage: ' + JSON.stringify( bookMessage ) );
+          // console.log( 'OrderbookComponent | ngOnChanges | bookMessage: ' + JSON.stringify( bookMessage ) );
 
           switch (bookMessage.action) {
             case OrderBookAction.UpdateAsk: {
               this._askBook.set(bookMessage.price, bookMessage);
-              this.askBook = Array.from(this._askBook.values()).sort( (ask1, ask2) => this.bookMessageComparer(ask1, ask2) );
+              // this.askBook = Array.from(this._askBook.values()).sort( (ask1, ask2) => this.bookMessageComparer(ask1, ask2) );
+              let tmpArray = Array.from(this._askBook.values()).sort( (ask1, ask2) => this.bookMessageComparer(ask1, ask2) );
+              if (this.orientation === 'horizontal') {
+                this.askBook = tmpArray;
+              } else {
+                this.askBook = tmpArray.slice( 0, 12 ).reverse( );
+              }
               return;
             }
             case OrderBookAction.UpdateBid: {
               this._bidBook.set(bookMessage.price, bookMessage);
-              this.bidBook = Array.from(this._bidBook.values()).sort( (bid1, bid2) => this.bookMessageComparer(bid1, bid2) );
+              // this.bidBook = Array.from(this._bidBook.values()).sort( (bid1, bid2) => this.bookMessageComparer(bid1, bid2) );
+              let tmpArray = Array.from(this._bidBook.values()).sort( (bid1, bid2) => this.bookMessageComparer(bid1, bid2) );
+              if (this.orientation === 'horizontal') {
+                this.bidBook = tmpArray;
+              } else {
+                this.bidBook = tmpArray.slice( tmpArray.length - 12 ).reverse( );
+              }
               return;
             }
             case OrderBookAction.DeleteAsk: {
               if (this._askBook.has(bookMessage.price)) {
                 this._askBook.delete(bookMessage.price);
-                this.askBook = Array.from(this._askBook.values()).sort( (ask1, ask2) => this.bookMessageComparer(ask1, ask2) );
+                // this.askBook = Array.from(this._askBook.values()).sort( (ask1, ask2) => this.bookMessageComparer(ask1, ask2) );
+                let tmpArray = Array.from(this._askBook.values()).sort( (ask1, ask2) => this.bookMessageComparer(ask1, ask2) );
+                if (this.orientation === 'horizontal') {
+                  this.askBook = tmpArray;
+                } else {
+                  this.askBook = tmpArray.slice( 0, 12 ).reverse( );
+                }
               }
               return;
             }
             case OrderBookAction.DeleteBid: {
               if (this._bidBook.has(bookMessage.price)) {
                 this._bidBook.delete(bookMessage.price);
-                this.bidBook = Array.from(this._bidBook.values()).sort( (bid1, bid2) => this.bookMessageComparer(bid1, bid2) );
+                // this.bidBook = Array.from(this._bidBook.values()).sort( (bid1, bid2) => this.bookMessageComparer(bid1, bid2) );
+                let tmpArray = Array.from(this._bidBook.values()).sort( (bid1, bid2) => this.bookMessageComparer(bid1, bid2) );
+                if (this.orientation === 'horizontal') {
+                  this.bidBook = tmpArray;
+                } else {
+                  this.bidBook = tmpArray.slice( tmpArray.length - 12 ).reverse( );
+                }
               }
               return;
             }
@@ -88,6 +116,13 @@ export class OrderbookComponent implements OnInit, OnChanges, OnDestroy {
         error => console.log( 'OrderbookComponent | ngOnChanges | error: ' + JSON.stringify(error) ),
         () => console.log( 'OrderbookComponent | ngOnChanges | completed' )
       );
+
+      this._bitfinexTradeSubscription = this._bitfinexService.getTradeListener( this.symbol );
+      this._bitfinexTradeSubscription.listener.subscribe(
+        next => {
+          this.last = next as TradeMessage;
+        }
+      )
     }
   }
 
@@ -102,8 +137,8 @@ export class OrderbookComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   ngOnDestroy() {
-    if (this._subscription) {
-      this._subscription.unsubscribe();
+    if (this._bitfinexSubscription) {
+      this._bitfinexService.unsubscribe(this._bitfinexSubscription);
     }
   }
 }

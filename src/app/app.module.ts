@@ -8,8 +8,9 @@ import { BitfinexService } from 'app/api/bitfinex/bitfinex.service';
 import { TickerComponent } from './ticker/ticker.component';
 import { OrderbookComponent } from './orderbook/orderbook.component';
 
-import { AutoCompleteModule } from 'primeng/primeng';
+import { AutoCompleteModule, ChartModule } from 'primeng/primeng';
 import { CurrencySymbolPipe } from 'app/shared/pipes/currencySymbol.pipe';
+import { ChartComponent } from './chart/chart.component';
 
 @NgModule({
   declarations: [
@@ -18,14 +19,17 @@ import { CurrencySymbolPipe } from 'app/shared/pipes/currencySymbol.pipe';
     TickerComponent,
     OrderbookComponent,
 
-    CurrencySymbolPipe
+    CurrencySymbolPipe,
+
+    ChartComponent
 ],
   imports: [
     BrowserModule,
     HttpModule,
     FormsModule,
 
-    AutoCompleteModule
+    AutoCompleteModule,
+    ChartModule
   ],
   providers: [
     { provide: LOCALE_ID, useValue: 'de-DE' },

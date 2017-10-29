@@ -1,5 +1,5 @@
 import { BehaviorSubject, Observable } from 'rxjs/Rx';
-import { BitfinexChannelMessage, TradeMessage, TickerMessage, BookMessage } from 'app/api/bitfinex/bitfinex-channel-messages';
+import { BitfinexChannelMessage, TradeMessage, TickerMessage, BookMessage, CandleMessage } from 'app/api/bitfinex/bitfinex-channel-messages';
 import { EventEmitter } from '@angular/core';
 
 export class BitfinexChannelSubscription {
@@ -226,6 +226,66 @@ export class BitfinexBooksChannel extends BitfinexChannel {
         bookMessage.amount = parsedMessage[1][2];
 
         this.listener.next( bookMessage );
+      }
+    }
+  }
+}
+
+export class BitfinexCandleChannel extends BitfinexChannel {
+  public symbol: string;
+  public pair: string;
+  private listener: BehaviorSubject<BitfinexChannelMessage>;
+
+  constructor( ) {
+    super();
+
+    this.listener = new BehaviorSubject<BitfinexChannelMessage>( null );
+  }
+
+  public getSubscribeMessage( options?: any ): string {
+    let message = {
+      'event': 'subscribe',
+      'channel': 'candles',
+      'key': this.symbol
+    };
+
+    return JSON.stringify(message);
+  }
+
+  public getSubscription( ): BitfinexChannelSubscription {
+    let listener = this.listener.filter( item => item !== null );
+    return new BitfinexChannelSubscription( this, this.symbol, listener );
+  }
+
+  public sendMessage( parsedMessage: any ): void {
+    // console.log( 'BitfinexCandleChannel | sendMessage | parsedMessage: ' + JSON.stringify(parsedMessage) );
+
+    if (parsedMessage) {
+      if (parsedMessage[1][0] instanceof Array) {
+        parsedMessage[1].forEach(element => {
+          let candleMessage = new CandleMessage( );
+          candleMessage.channelId = parsedMessage[0];
+          candleMessage.timestamp = new Date(element[0]);
+          candleMessage.open = element[1];
+          candleMessage.close = element[2];
+          candleMessage.high = element[3];
+          candleMessage.low = element[4];
+          candleMessage.volume = element[5];
+
+          this.listener.next( candleMessage );
+        });
+      } else {
+
+        let candleMessage = new CandleMessage( );
+        candleMessage.channelId = parsedMessage[0];
+        candleMessage.timestamp = new Date(parsedMessage[1][0]);
+        candleMessage.open = parsedMessage[1][1];
+        candleMessage.close = parsedMessage[1][2];
+        candleMessage.high = parsedMessage[1][3];
+        candleMessage.low = parsedMessage[1][4];
+        candleMessage.volume = parsedMessage[1][5];
+
+        this.listener.next( candleMessage );
       }
     }
   }

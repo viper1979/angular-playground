@@ -32,6 +32,16 @@ export class TradeMessage extends BitfinexChannelMessage {
 }
 
 export class CandleMessage extends BitfinexChannelMessage {
+  timestamp: Date;
+  open: number;
+  high: number;
+  low: number;
+  close: number;
+  volume: number;
+
+  constructor() {
+    super();
+  }
 }
 
 export enum OrderBookAction {
