@@ -80,6 +80,9 @@ export class BookMessage extends BitfinexChannelMessage {
       }
     }
   }
+
+  // display variable
+  levelAmount: number;
 }
 
 export class TickerMessage extends BitfinexChannelMessage {

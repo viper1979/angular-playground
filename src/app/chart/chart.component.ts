@@ -16,7 +16,11 @@ export class ChartComponent implements OnInit, OnChanges, OnDestroy {
   @ViewChild('chart')
   chart: UIChart;
 
+  @ViewChild('volumechart')
+  volumeChart: UIChart;
+
   chartData: PrimeNgChartData;
+  chartDataVolume: PrimeNgChartData;
 
   @Input()
   symbol: string;
@@ -26,6 +30,8 @@ export class ChartComponent implements OnInit, OnChanges, OnDestroy {
 
   ngOnInit() {
     this.chartData = new PrimeNgChartData( );
+    this.chartDataVolume = new PrimeNgChartData( );
+
     this._chartData = new Map<string, CandleMessage>( );
   }
 
@@ -37,8 +43,10 @@ export class ChartComponent implements OnInit, OnChanges, OnDestroy {
 
       if (!this.chartData) {
         this.chartData = new PrimeNgChartData( );
+        this.chartDataVolume = new PrimeNgChartData( );
       }
       this.chartData.datasets[0].label = this.symbol;
+      this.chartDataVolume.datasets[0].label = 'volume';
 
       console.log( 'ChartComponent | ngOnChanges | Trying to subscribe to symbol: ' + this.symbol);
       this._bitfinexSubscription = this._bitfinexService.getCandleListener( this.symbol );
@@ -66,6 +74,10 @@ export class ChartComponent implements OnInit, OnChanges, OnDestroy {
           this.chartData.datasets[0].data = [];
           this.chartData.datasets[0].label = this.symbol;
 
+          this.chartDataVolume.labels = [];
+          this.chartDataVolume.datasets[0].data = [];
+          this.chartDataVolume.datasets[0].label = this.symbol;
+
           Array.from( this._chartData.keys( ) ).sort( (d1, d2) => this.DateComparer( d1, d2) ).forEach(element => {
             let candle = this._chartData.get(element);
 
@@ -74,8 +86,12 @@ export class ChartComponent implements OnInit, OnChanges, OnDestroy {
 
             this.chartData.labels.push( displayTimestamp );
             this.chartData.datasets[0].data.push( this._chartData.get(element).close );
+
+            this.chartDataVolume.labels.push( displayTimestamp );
+            this.chartDataVolume.datasets[0].data.push( this._chartData.get(element).volume );
           });
           this.chart.refresh( );
+          this.volumeChart.refresh( );
 
           console.log( 'ChartComponent | ngOnChanges | message: ' + JSON.stringify(candleMessage) );
         },

@@ -64,6 +64,15 @@ export class OrderbookComponent implements OnInit, OnChanges, OnDestroy {
               this._askBook.set(bookMessage.price, bookMessage);
               // this.askBook = Array.from(this._askBook.values()).sort( (ask1, ask2) => this.bookMessageComparer(ask1, ask2) );
               let tmpArray = Array.from(this._askBook.values()).sort( (ask1, ask2) => this.bookMessageComparer(ask1, ask2) );
+
+              tmpArray.forEach( (item, index) => {
+                if (index > 0) {
+                  item.levelAmount = tmpArray[ index - 1 ].levelAmount + item.amount;
+                } else {
+                  item.levelAmount = item.amount;
+                }
+              });
+
               if (this.orientation === 'horizontal') {
                 this.askBook = tmpArray;
               } else {
@@ -75,11 +84,19 @@ export class OrderbookComponent implements OnInit, OnChanges, OnDestroy {
               this._bidBook.set(bookMessage.price, bookMessage);
               // this.bidBook = Array.from(this._bidBook.values()).sort( (bid1, bid2) => this.bookMessageComparer(bid1, bid2) );
               let tmpArray = Array.from(this._bidBook.values()).sort( (bid1, bid2) => this.bookMessageComparer(bid1, bid2) );
+
               if (this.orientation === 'horizontal') {
                 this.bidBook = tmpArray;
               } else {
                 this.bidBook = tmpArray.slice( tmpArray.length - 12 ).reverse( );
               }
+
+              let previousValue: number = 0;
+              this.bidBook.forEach( item => {
+                item.levelAmount = previousValue + item.amount;
+                previousValue += item.amount;
+              });
+
               return;
             }
             case OrderBookAction.DeleteAsk: {
@@ -87,6 +104,15 @@ export class OrderbookComponent implements OnInit, OnChanges, OnDestroy {
                 this._askBook.delete(bookMessage.price);
                 // this.askBook = Array.from(this._askBook.values()).sort( (ask1, ask2) => this.bookMessageComparer(ask1, ask2) );
                 let tmpArray = Array.from(this._askBook.values()).sort( (ask1, ask2) => this.bookMessageComparer(ask1, ask2) );
+
+                tmpArray.forEach( (item, index) => {
+                  if (index > 0) {
+                    item.levelAmount = tmpArray[ index - 1 ].levelAmount + item.amount;
+                  } else {
+                    item.levelAmount = item.amount;
+                  }
+                });
+
                 if (this.orientation === 'horizontal') {
                   this.askBook = tmpArray;
                 } else {
@@ -100,11 +126,18 @@ export class OrderbookComponent implements OnInit, OnChanges, OnDestroy {
                 this._bidBook.delete(bookMessage.price);
                 // this.bidBook = Array.from(this._bidBook.values()).sort( (bid1, bid2) => this.bookMessageComparer(bid1, bid2) );
                 let tmpArray = Array.from(this._bidBook.values()).sort( (bid1, bid2) => this.bookMessageComparer(bid1, bid2) );
+
                 if (this.orientation === 'horizontal') {
                   this.bidBook = tmpArray;
                 } else {
                   this.bidBook = tmpArray.slice( tmpArray.length - 12 ).reverse( );
                 }
+
+                let previousValue: number = 0;
+                this.bidBook.forEach( item => {
+                  item.levelAmount = previousValue + item.amount;
+                  previousValue += item.amount;
+                });
               }
               return;
             }

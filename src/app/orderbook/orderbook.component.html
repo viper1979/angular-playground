@@ -47,28 +47,32 @@
     <table class="table table-hover table-bordered table-sm">
       <thead>
         <tr>
-        <th>Offers</th>
-        <th>Amount</th>
         <th>Price</th>
+        <th>Volume</th>
+        <th>Total</th>
       </tr>
       </thead>
       <tbody>
-        <tr *ngFor="let ask of askBook" class="ask">
-          <td>{{ask.count}}</td>
+        <tr *ngFor="let ask of askBook">
+          <!-- <td>{{ask.count}}</td> -->
+          <td class="ask">{{ask.price | number:'1.2-2'}}</td>
           <td class="text-right">{{ask.amount | number:'1.4-4'}}</td>
-          <td>{{ask.price | number:'1.2-2'}}</td>
+          <!-- <td>{{ask.price | number:'1.2-2'}}</td> -->
+          <td class="text-right">{{ask.levelAmount | number:'1.2-2'}}</td>
         </tr>
 
-        <tr         >
-          <td><b>{{last.orderType}}</b></td>
-          <td class="text-right" [ngClass]="{ 'blur-out-expand-fwd': true }"><b>{{last.amount | number:'1.4-4'}}</b></td>
+        <tr>
           <td><b>{{last.orderPrice | number:'1.2-2'}}</b></td>
+          <td class="text-right" [ngClass]="{ 'blur-out-expand-fwd': true }"><b>{{last.amount | number:'1.4-4'}}</b></td>
+          <td class="text-right"><b>{{last.orderType}}</b></td>
         </tr>
 
-        <tr *ngFor="let bid of bidBook" class="bid">
-          <td>{{bid.count}}</td>
+        <tr *ngFor="let bid of bidBook">
+          <!-- <td>{{bid.count}}</td> -->
+          <td class="bid">{{bid.price | number:'1.2-2'}}</td>
           <td class="text-right">{{bid.amount | number:'1.4-4'}}</td>
-          <td>{{bid.price | number:'1.2-2'}}</td>
+          <!-- <td>{{bid.price | number:'1.2-2'}}</td> -->
+          <td class="text-right">{{bid.levelAmount | number:'1.2-2'}}</td>
         </tr>
       </tbody>
     </table>
