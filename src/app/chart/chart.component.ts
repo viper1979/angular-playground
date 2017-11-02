@@ -65,7 +65,7 @@ export class ChartComponent implements OnInit, OnChanges, OnDestroy {
 
   ngOnChanges(changes: SimpleChanges) {
     if (changes.symbol.currentValue.length === 6) {
-      this.initChart( );
+      this.drawChart( );
     }
   }
 
@@ -75,16 +75,12 @@ export class ChartComponent implements OnInit, OnChanges, OnDestroy {
     }
   }
 
-  private initChart( ) {
+  private drawChart( ) {
     if (this._bitfinexSubscription) {
       this._bitfinexService.unsubscribe( this._bitfinexSubscription );
     }
 
-    // if (!this.chartData) {
-    //   this.chartData = new PrimeNgChartData( );
-    //   this.chartDataVolume = new PrimeNgChartData( );
-    // }
-
+    // reset variables
     this._chartData = new Map<string, CandleMessage>( );
     this.chartData = new PrimeNgChartData( );
     this.chartDataVolume = new PrimeNgChartData( );
@@ -119,8 +115,10 @@ export class ChartComponent implements OnInit, OnChanges, OnDestroy {
         Array.from( this._chartData.keys( ) ).sort( (d1, d2) => this.DateComparer( d1, d2) ).forEach(element => {
           let candle = this._chartData.get(element);
 
-          let displayTimestamp = ( candle.timestamp.getHours() < 10 ? '0' + candle.timestamp.getHours( ) : candle.timestamp.getHours( ) ) + ':';
-          displayTimestamp += candle.timestamp.getMinutes() < 10 ? '0' + candle.timestamp.getMinutes( ) : candle.timestamp.getMinutes( );
+          // let displayTimestamp = ( candle.timestamp.getHours() < 10 ? '0' + candle.timestamp.getHours( ) : candle.timestamp.getHours( ) ) + ':';
+          // displayTimestamp += candle.timestamp.getMinutes() < 10 ? '0' + candle.timestamp.getMinutes( ) : candle.timestamp.getMinutes( );
+
+          let displayTimestamp = this.GetDisplayTimestamp( candle.timestamp );
 
           this.chartData.labels.push( displayTimestamp );
           this.chartData.datasets[0].data.push( this._chartData.get(element).close );
@@ -151,9 +149,48 @@ export class ChartComponent implements OnInit, OnChanges, OnDestroy {
     return 0;
   }
 
+  private GetDisplayTimestamp( timestamp: Date ): string {
+    let sTimestamp: string;
+
+    switch (this.selectedTimeframe) {
+      case '1m':
+      case '5m':
+      case '15m':
+      case '30m': {
+        let hours: number = timestamp.getHours( );
+        let minutes: number = timestamp.getMinutes( );
+        sTimestamp = ( hours < 10 ? '0' : '' )  + hours + ':';
+        sTimestamp += ( minutes < 10 ? '0' : '' ) + minutes;
+        return sTimestamp;
+      }
+      case '1h':
+      case '3h': {
+        let hours: number = timestamp.getHours( );
+        let day: number = timestamp.getDay( );
+        sTimestamp = ( hours < 10 ? '0' : '' )  + hours + 'h ';
+        sTimestamp += timestamp.getDay( ) + '.' + timestamp.getMonth( );
+        return sTimestamp;
+      }
+      case '6h':
+      case '12h':
+      case '1D': {
+        let day: number = timestamp.getDay( );
+        sTimestamp = timestamp.getDay( ) + '/' + timestamp.getMonth( ) + '/' + timestamp.getFullYear( );
+        return sTimestamp;
+      }
+      case '7D':
+      case '14D':
+      case '1M':
+      default: {
+        sTimestamp = timestamp.getMonth( ) + '/' + ( timestamp.getFullYear( ) );
+        return sTimestamp;
+      }
+    }
+  }
+
   timeframeChanged(event): void {
     this.selectedTimeframe = event;
-    this.initChart( );
+    this.drawChart( );
   }
 }
 
