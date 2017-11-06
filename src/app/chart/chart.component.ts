@@ -69,7 +69,7 @@ export class ChartComponent implements OnInit, OnChanges, OnDestroy {
           Array.from( this._chartData.keys( ) ).sort( (d1, d2) => this.DateComparer( d1, d2) ).forEach(element => {
             let candle = this._chartData.get(element);
 
-            let displayTimestamp = candle.timestamp.getHours() < 10 ? '0' + candle.timestamp.getHours( ) : candle.timestamp.getHours( ) + ':';
+            let displayTimestamp = ( candle.timestamp.getHours() < 10 ? '0' + candle.timestamp.getHours( ) : candle.timestamp.getHours( ) ) + ':';
             displayTimestamp += candle.timestamp.getMinutes() < 10 ? '0' + candle.timestamp.getMinutes( ) : candle.timestamp.getMinutes( );
 
             this.chartData.labels.push( displayTimestamp );
