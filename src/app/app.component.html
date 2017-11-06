@@ -1,43 +1,39 @@
-<link href="https://fonts.googleapis.com/css?family=Noto+Sans|Oswald|Amatic+SC" rel="stylesheet">
-
-<div>
-  <p-autoComplete [(ngModel)]="bitfinexSymbol" [suggestions]="filteredSymbols" (completeMethod)="filterSymbols($event)" (onSelect)="changeDisplaySymbol($event)" placeholder="BTCUSD" [dropdown]="true">
-      <ng-template let-symbol pTemplate="item">
-          <div class="ui-helper-clearfix" style="border-bottom:1px solid #D5D5D5">
-              {{symbol}}
-          </div>
-      </ng-template>
-  </p-autoComplete>
+<div class="row">
+  <div class="col-md-10 col-md-offset-1">
+      <p-autoComplete [(ngModel)]="bitfinexSymbol" [suggestions]="filteredSymbols" (completeMethod)="filterSymbols($event)" (onSelect)="changeDisplaySymbol($event)" placeholder="BTCUSD" [dropdown]="true">
+          <ng-template let-symbol pTemplate="item">
+              <div class="ui-helper-clearfix" style="border-bottom:1px solid #D5D5D5">
+                  {{symbol}}
+              </div>
+          </ng-template>
+      </p-autoComplete>
+  </div>
 </div>
 
 <hr>
 
-  <!-- <div class="row">
-    <div class="col-md-3">
-      <app-chart [symbol]="bitfinexSymbol">
-      </app-chart>
-    </div>
-  </div> -->
+<div class="row">
 
-
-
-  <div class="row">
-    <div class="col-md-3 col-md-offset-1">
-      <app-ticker [symbol]="bitfinexSymbol">
-      </app-ticker>
-      <br>
-      <app-chart [symbol]="bitfinexSymbol">
-      </app-chart>
-    </div>
-    <div class="col-md-3">
-      <app-quote [symbol]="bitfinexSymbol">
-      </app-quote>
-    </div>
-    <div class="col-md-3">
-      <app-orderbook [symbol]="bitfinexSymbol" orientation="vertical">
-      </app-orderbook>
-    </div>
+  <div class="col-md-3">
+    <app-ticker [symbol]="bitfinexSymbol">
+    </app-ticker>
+    <br>
+    <app-quote [symbol]="bitfinexSymbol">
+    </app-quote>
   </div>
+
+  <div class="col-md-7">
+    <app-chart [symbol]="bitfinexSymbol">
+    </app-chart>
+  </div>
+
+  <div class="col-md-2">
+    <app-orderbook [symbol]="bitfinexSymbol" orientation="vertical">
+    </app-orderbook>
+  </div>
+
+</div>
+
 
 
 <!-- <div class="container-fluid">

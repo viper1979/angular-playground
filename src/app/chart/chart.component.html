@@ -1,1 +1,14 @@
-<p-chart #chart type="line" [data]="chartData"></p-chart>
+<div class="row">
+  <div class="col-md-12">
+    <select name="timeframes" (change)="timeframeChanged($event.target.value)">
+      <option value="{{timeframe.value}}" *ngFor="let timeframe of availableTimeframes">{{timeframe.label}}</option>
+    </select>
+  </div>
+</div>
+
+<div class="row">
+  <div class="col-md-12">
+      <p-chart #chart type="line" [data]="chartData"></p-chart>
+      <p-chart #volumechart type="bar" [data]="chartDataVolume" [options]="volumeChartOptions" height="65"></p-chart>
+  </div>
+</div>

@@ -138,7 +138,7 @@ export class BitfinexTickerChannel extends BitfinexChannel {
   }
 
   public sendMessage( parsedMessage: any ): void {
-    console.log( 'TickerMessage | sendMessage | parsedMessage: ' + JSON.stringify(parsedMessage) );
+    // console.log( 'TickerMessage | sendMessage | parsedMessage: ' + JSON.stringify(parsedMessage) );
 
     if (parsedMessage) {
       let tickerMessage = new TickerMessage( );
@@ -204,7 +204,7 @@ export class BitfinexBooksChannel extends BitfinexChannel {
   }
 
   public sendMessage( parsedMessage: any ): void {
-    console.log( 'BitfenixBooksChannel | sendMessage | parsedMessage: ' + JSON.stringify(parsedMessage) );
+    // console.log( 'BitfenixBooksChannel | sendMessage | parsedMessage: ' + JSON.stringify(parsedMessage) );
 
     if (parsedMessage) {
       if (parsedMessage[1][0] instanceof Array) {

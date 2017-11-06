@@ -174,7 +174,7 @@ export class BitfinexService {
             break;
           }
           case 'unsubscribed': {
-            console.log( '### UNSUBSCRIBED: ' + JSON.stringify(parsedMessage) );
+            this.unsubscribeReceived(parsedMessage);
             break;
           }
           case 'error': {
@@ -254,8 +254,13 @@ export class BitfinexService {
     }
   }
 
-  // private unsubscribeReceived( parsedMessage: ITradeUnsubscribe ): void {
-  // }
+  private unsubscribeReceived( parsedMessage: ITradeUnsubscribe ): void {
+    console.log( '### UNSUBSCRIBED: ' + JSON.stringify(parsedMessage) );
+
+    if (this._activeSubscriptions.has(parsedMessage.chanId)) {
+      this._activeSubscriptions.delete(parsedMessage.chanId);
+    }
+  }
 }
 
 export interface ITradeSubscription {
@@ -264,4 +269,10 @@ export interface ITradeSubscription {
   chanId: number;
   symbol: string;
   pair: string;
+}
+
+export interface ITradeUnsubscribe {
+  event: string;
+  status: string;
+  chanId: number;
 }
