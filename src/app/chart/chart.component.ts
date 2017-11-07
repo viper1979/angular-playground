@@ -166,16 +166,16 @@ export class ChartComponent implements OnInit, OnChanges, OnDestroy {
       case '1h':
       case '3h': {
         let hours: number = timestamp.getHours( );
-        let day: number = timestamp.getDay( );
+        let day: number = timestamp.getDate( );
         sTimestamp = ( hours < 10 ? '0' : '' )  + hours + 'h ';
-        sTimestamp += timestamp.getDay( ) + '.' + timestamp.getMonth( );
+        sTimestamp += timestamp.getDate( ) + '.' + timestamp.getMonth( );
         return sTimestamp;
       }
       case '6h':
       case '12h':
       case '1D': {
-        let day: number = timestamp.getDay( );
-        sTimestamp = timestamp.getDay( ) + '/' + timestamp.getMonth( ) + '/' + timestamp.getFullYear( );
+        let day: number = timestamp.getDate( );
+        sTimestamp = timestamp.getDate( ) + '/' + timestamp.getMonth( ) + '/' + timestamp.getFullYear( );
         return sTimestamp;
       }
       case '7D':

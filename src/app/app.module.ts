@@ -11,6 +11,8 @@ import { OrderbookComponent } from './orderbook/orderbook.component';
 import { AutoCompleteModule, ChartModule } from 'primeng/primeng';
 import { CurrencySymbolPipe } from 'app/shared/pipes/currencySymbol.pipe';
 import { ChartComponent } from './chart/chart.component';
+import { ExchangeOverviewComponent } from './exchange-overview/exchange-overview.component';
+import { ExchangeAssetPairComponent } from './exchange-asset-pair/exchange-asset-pair.component';
 
 @NgModule({
   declarations: [
@@ -21,7 +23,9 @@ import { ChartComponent } from './chart/chart.component';
 
     CurrencySymbolPipe,
 
-    ChartComponent
+    ChartComponent,
+    ExchangeOverviewComponent,
+    ExchangeAssetPairComponent
 ],
   imports: [
     BrowserModule,
