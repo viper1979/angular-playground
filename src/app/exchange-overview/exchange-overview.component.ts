@@ -2,6 +2,7 @@ import { Component, OnInit, OnDestroy } from '@angular/core';
 import { BitfinexService } from 'app/api/bitfinex/bitfinex.service';
 import { TickerMessage } from 'app/api/bitfinex/bitfinex-channel-messages';
 import { BitfinexChannelSubscription } from 'app/api/bitfinex/bitfinex-channels';
+import { ArrayHelper } from 'app/shared/helper/array-helper';
 
 @Component({
   selector: 'app-exchange-overview',
@@ -9,82 +10,69 @@ import { BitfinexChannelSubscription } from 'app/api/bitfinex/bitfinex-channels'
   styleUrls: ['./exchange-overview.component.css']
 })
 export class ExchangeOverviewComponent implements OnInit, OnDestroy {
-  private _tickerSubscriptions: Map<string, BitfinexChannelSubscription>;
-  // assetPairs: Map<string, AssetPair>;
-  assetPairs: AssetPair[];
-
+  private _assetPairs: Map<string, AssetPair>;
+  private _sortedAssetPairs: Map<string, AssetPair[]>;
+  primaryAssets: string[];
 
   constructor(private _bitfinexService: BitfinexService) {
-    this._tickerSubscriptions = new Map<string, BitfinexChannelSubscription>( );
-    // this.assetPairs = new Map<string, AssetPair>( );
-    this.assetPairs = [];
+    this._assetPairs = new Map<string, AssetPair>( );
+    this._sortedAssetPairs = new Map<string, AssetPair[]>( );
+    this.primaryAssets = [];
   }
 
   ngOnInit() {
-    this.subscribeAllSymbols( );
+    this.initAssetPairs( );
   }
 
   ngOnDestroy() {
-    if (this._tickerSubscriptions && this._tickerSubscriptions.size > 0) {
-      this._tickerSubscriptions.forEach( item => {
-        this._bitfinexService.unsubscribe( item );
-      });
+  }
+
+  private initAssetPairs( ): void {
+    let availableSymbols = this._bitfinexService.getAvailableSymbols( );
+
+    availableSymbols.forEach( symbol => {
+      let primaryCurrency = symbol.substring( 0, 3 );
+
+      if (ArrayHelper.contains( this.primaryAssets, primaryCurrency ) === false) {
+        this.primaryAssets.push( primaryCurrency );
+      }
+    });
+
+    this.primaryAssets.forEach( item => console.log( item ) );
+
+    // subscribe to each available symbol
+    for (let i = 0; i < availableSymbols.length; i++) {
+      let symbol = availableSymbols[ i ];
+
+      let assetPair = new AssetPair( );
+      assetPair.exchange = 'Bitfinex';
+      assetPair.symbol = symbol;
+
+      this._assetPairs.set( symbol, assetPair );
     }
   }
 
-  private subscribeAllSymbols( ): void {
-    let availableSymbols = this._bitfinexService.getAvailableSymbols( );
+  getAssetPairs( primaryCurrency: string ): AssetPair[] {
+    if (this._sortedAssetPairs.has(primaryCurrency)) {
+      return this._sortedAssetPairs.get(primaryCurrency);
+    }
 
-    let grpByStartingCurrency = this.groupByArray( availableSymbols, (item: string) => {
-      return item.substring( 0, 3 );
-    } );
+    // get all symbols which starts with the given currency-key
+    let matchingSymbols = Array.from( this._assetPairs.keys( ) ).filter( item => item.substring( 0, 3 ) === primaryCurrency );
+    let matchingAssetPairs: AssetPair[] = [];
 
-    grpByStartingCurrency.forEach( item => {
-      console.log( item.key );
+    // get all assetPairs for the matching symbols
+    matchingSymbols.forEach( item => {
+      matchingAssetPairs.push( this._assetPairs.get( item ) );
     });
 
-    return;
+    // when every assetPair already has a 'volume' than sort all pairs by their volume and store them in a cache
+    if (matchingAssetPairs.every(pair => pair.tickerMessage && pair.tickerMessage.volume > 0)) {
+      this._sortedAssetPairs.set( primaryCurrency, matchingAssetPairs.sort((a, b) => a.tickerMessage.volume > b.tickerMessage.volume ? -1 : 1) );
+      matchingAssetPairs = this._sortedAssetPairs.get( primaryCurrency );
+    }
 
-    // subscribe to each available symbol
-    // for (let i = 0; i < availableSymbols.length; i++) {
-    //   let symbol = availableSymbols[ i ];
-    //   let subscribtion = this._bitfinexService.getTickerListener( symbol );
-
-
-    //   subscribtion.listener.subscribe(
-    //     next => {
-    //       let tickerMessage: TickerMessage = next as TickerMessage;
-
-    //       let assetPair = new AssetPair( );
-    //       assetPair.symbol = symbol;
-    //       assetPair.tickerMessage = tickerMessage;
-
-    //       let index = this.assetPairs.findIndex( item => item.symbol === symbol );
-    //       if (index >= 0) {
-    //         this.assetPairs[ index ] = assetPair;
-    //       } else {
-    //         this.assetPairs.push( assetPair );
-    //       }
-    //     },
-    //     error => console.log( 'error'),
-    //     () => console.log( 'complete' )
-    //   );
-
-    //   this._tickerSubscriptions.set( symbol, subscribtion );
-    // }
-  }
-
-  groupByArray(xs, key) {
-    return xs.reduce( function (rv, x) {
-      let v = key instanceof Function ? key(x) : x[key];
-      let el = rv.find((r) => r && r.key === v);
-      if (el) {
-        el.values.push(x);
-      } else {
-        rv.push({ key: v, values: [x] });
-      }
-      return rv;
-    }, []);
+    return matchingAssetPairs;
   }
 }
 
@@ -98,6 +86,7 @@ export class AssetPairs {
 }
 
 export class AssetPair {
+  exchange: string;
   symbol: string;
   tickerMessage: TickerMessage;
 

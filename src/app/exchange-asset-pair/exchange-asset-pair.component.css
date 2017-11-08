@@ -1,0 +1,11 @@
+div.simplePair:hover {
+  background-color: #d8d7d7
+}
+
+div.extendedPair:hover {
+  background-color: #d8d7d7
+}
+
+.flexItem {
+  flex-grow: 1;
+}

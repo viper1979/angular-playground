@@ -1,6 +1,6 @@
 <div class="row">
-  <div class="col-md-4" *ngFor="let assetPair of assetPairs">
-    <app-exchange-asset-pair [assetPair]="assetPair">
-    </app-exchange-asset-pair>
+  <div class="col-md-3" *ngFor="let primaryAsset of primaryAssets">
+    <app-exchange-asset-pairs [assetPairs]="getAssetPairs(primaryAsset)">
+    </app-exchange-asset-pairs>
   </div>
 </div>
