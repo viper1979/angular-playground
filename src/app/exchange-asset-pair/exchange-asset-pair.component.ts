@@ -4,6 +4,7 @@ import { AssetPair } from 'app/exchange-overview/exchange-overview.component';
 import { BitfinexService } from 'app/api/bitfinex/bitfinex.service';
 import { BitfinexChannelSubscription } from 'app/api/bitfinex/bitfinex-channels';
 import { TickerMessage } from 'app/api/bitfinex/bitfinex-channel-messages';
+import { Router, ActivatedRoute } from '@angular/router';
 
 @Component({
   selector: 'app-exchange-asset-pair',
@@ -43,7 +44,10 @@ export class ExchangeAssetPairComponent implements OnInit, OnChanges, OnDestroy 
 
   priceChangeState: string = 'equal';
 
-  constructor(private _bitfinexService: BitfinexService) {
+  constructor(
+    private _bitfinexService: BitfinexService,
+    private _router: Router,
+    private route: ActivatedRoute) {
   }
 
   ngOnInit() {
@@ -76,5 +80,10 @@ export class ExchangeAssetPairComponent implements OnInit, OnChanges, OnDestroy 
     if (this._bitfinexChannelSubscription) {
       this._bitfinexService.unsubscribe(this._bitfinexChannelSubscription);
     }
+  }
+
+  navigateToPair() {
+    console.log( 'navigateToPair: ' + this.assetPair.symbol);
+    this._router.navigate(['/bitfinex/' + this.assetPair.symbol]);
   }
 }

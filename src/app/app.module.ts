@@ -2,11 +2,11 @@ import { BrowserModule } from '@angular/platform-browser';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { FormsModule } from '@angular/forms';
 import { HttpModule } from '@angular/http';
-// import { RouterModule, Routes } from '@angular/router';
+import { RouterModule, Routes } from '@angular/router';
 import { NgModule, LOCALE_ID } from '@angular/core';
 
 import { AppComponent } from './app.component';
-import { QuoteComponent } from './quote/quote.component';
+import { TradesComponent } from './trades/trades.component';
 import { BitfinexService } from 'app/api/bitfinex/bitfinex.service';
 import { TickerComponent } from './ticker/ticker.component';
 import { OrderbookComponent } from './orderbook/orderbook.component';
@@ -19,20 +19,27 @@ import { ChartComponent } from './chart/chart.component';
 import { ExchangeOverviewComponent } from './exchange-overview/exchange-overview.component';
 import { ExchangeAssetPairComponent } from './exchange-asset-pair/exchange-asset-pair.component';
 import { ExchangeAssetPairsComponent } from './exchange-asset-pairs/exchange-asset-pairs.component';
+import { ExchangeTradingViewComponent } from './exchange-trading-view/exchange-trading-view.component';
+
+const appRoutes: Routes = [
+  { path: 'bitfinex/:bitfinexSymbol', component: ExchangeTradingViewComponent },
+  { path: '**', component: ExchangeOverviewComponent }
+];
 
 @NgModule({
   declarations: [
     AppComponent,
-    QuoteComponent,
+    TradesComponent,
     TickerComponent,
     OrderbookComponent,
     ChartComponent,
     ExchangeOverviewComponent,
     ExchangeAssetPairsComponent,
     ExchangeAssetPairComponent,
+    ExchangeTradingViewComponent,
     CurrencySymbolPipe,
     VolumePipe
-],
+  ],
   imports: [
     BrowserModule,
     BrowserAnimationsModule,
@@ -40,7 +47,11 @@ import { ExchangeAssetPairsComponent } from './exchange-asset-pairs/exchange-ass
     FormsModule,
 
     AutoCompleteModule,
-    ChartModule
+    ChartModule,
+    RouterModule.forRoot(
+      appRoutes,
+      { enableTracing: false }
+    )
   ],
   providers: [
     { provide: LOCALE_ID, useValue: 'de-DE' },

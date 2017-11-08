@@ -9,3 +9,7 @@ div.extendedPair:hover {
 .flexItem {
   flex-grow: 1;
 }
+
+a {
+  color: #000;
+}

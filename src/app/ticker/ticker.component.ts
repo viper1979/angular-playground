@@ -10,7 +10,6 @@ import { Subscription } from 'rxjs/Subscription';
   styleUrls: ['./ticker.component.css']
 })
 export class TickerComponent implements OnInit, OnChanges, OnDestroy {
-  private _subscription: Subscription;
   private _bitfinexSubscription: BitfinexChannelSubscription;
 
   tickerMessage: TickerMessage;
@@ -20,7 +19,7 @@ export class TickerComponent implements OnInit, OnChanges, OnDestroy {
 
   symbolToDisplay: string;
 
-  constructor(private _tickerService: BitfinexService) { }
+  constructor(private _bitfinexService: BitfinexService) { }
 
   ngOnInit() {
   }
@@ -30,13 +29,13 @@ export class TickerComponent implements OnInit, OnChanges, OnDestroy {
 
     if (changes.symbol.currentValue.length === 6) {
       if (this._bitfinexSubscription) {
-        this._tickerService.unsubscribe(this._bitfinexSubscription);
+        this._bitfinexService.unsubscribe(this._bitfinexSubscription);
       }
 
       this.symbolToDisplay = changes.symbol.currentValue;
 
       console.log( 'TickerComponent | ngOnChanges | Trying to subscribe to symbol: ' + this.symbol);
-      this._bitfinexSubscription = this._tickerService.getTickerListener( this.symbol );
+      this._bitfinexSubscription = this._bitfinexService.getTickerListener( this.symbol );
 
       this._bitfinexSubscription.heartbeat.subscribe(
         hb => console.log( 'TickerComponent | Channel \'' + hb.channel + '\' heartbeat @ ' + hb.timestamp )
@@ -54,8 +53,8 @@ export class TickerComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   ngOnDestroy() {
-    if (this._subscription) {
-      this._subscription.unsubscribe();
+    if (this._bitfinexSubscription) {
+      this._bitfinexService.unsubscribe(this._bitfinexSubscription);
     }
   }
 }

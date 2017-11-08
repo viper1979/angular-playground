@@ -1,3 +1,4 @@
+<div *ngIf="tickerMessage">
 <div class="row">
   <div class="col-xs-4 col-xs-offset-2 quote-font">
     {{symbolToDisplay}}
@@ -40,4 +41,5 @@
   <div  class="col-xs-4 text-right">
     <span  class="label label-default small-font">A <i  class="fa fa-arrow-left"></i> {{tickerMessage.ask | number:'1.2-2'}}</span>
   </div>
+</div>
 </div>

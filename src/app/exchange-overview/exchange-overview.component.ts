@@ -53,6 +53,7 @@ export class ExchangeOverviewComponent implements OnInit, OnDestroy {
   }
 
   getAssetPairs( primaryCurrency: string ): AssetPair[] {
+    // check if we already have the sorted array in cache
     if (this._sortedAssetPairs.has(primaryCurrency)) {
       return this._sortedAssetPairs.get(primaryCurrency);
     }

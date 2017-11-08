@@ -82,7 +82,6 @@ export class OrderbookComponent implements OnInit, OnChanges, OnDestroy {
             }
             case OrderBookAction.UpdateBid: {
               this._bidBook.set(bookMessage.price, bookMessage);
-              // this.bidBook = Array.from(this._bidBook.values()).sort( (bid1, bid2) => this.bookMessageComparer(bid1, bid2) );
               let tmpArray = Array.from(this._bidBook.values()).sort( (bid1, bid2) => this.bookMessageComparer(bid1, bid2) );
 
               if (this.orientation === 'horizontal') {
@@ -102,7 +101,6 @@ export class OrderbookComponent implements OnInit, OnChanges, OnDestroy {
             case OrderBookAction.DeleteAsk: {
               if (this._askBook.has(bookMessage.price)) {
                 this._askBook.delete(bookMessage.price);
-                // this.askBook = Array.from(this._askBook.values()).sort( (ask1, ask2) => this.bookMessageComparer(ask1, ask2) );
                 let tmpArray = Array.from(this._askBook.values()).sort( (ask1, ask2) => this.bookMessageComparer(ask1, ask2) );
 
                 tmpArray.forEach( (item, index) => {
@@ -124,7 +122,6 @@ export class OrderbookComponent implements OnInit, OnChanges, OnDestroy {
             case OrderBookAction.DeleteBid: {
               if (this._bidBook.has(bookMessage.price)) {
                 this._bidBook.delete(bookMessage.price);
-                // this.bidBook = Array.from(this._bidBook.values()).sort( (bid1, bid2) => this.bookMessageComparer(bid1, bid2) );
                 let tmpArray = Array.from(this._bidBook.values()).sort( (bid1, bid2) => this.bookMessageComparer(bid1, bid2) );
 
                 if (this.orientation === 'horizontal') {

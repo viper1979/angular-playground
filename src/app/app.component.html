@@ -1,5 +1,9 @@
 <div class="row">
-  <div class="col-md-10 col-md-offset-1">
+  <div class="col-md-1">
+    <a [routerLink]="['/']">HOME</a>
+
+  </div>
+  <div class="col-md-8 col-md-offset-1">
       <p-autoComplete [(ngModel)]="bitfinexSymbol" [suggestions]="filteredSymbols" (completeMethod)="filterSymbols($event)" (onSelect)="changeDisplaySymbol($event)" placeholder="BTCUSD" [dropdown]="true">
           <ng-template let-symbol pTemplate="item">
               <div class="ui-helper-clearfix" style="border-bottom:1px solid #D5D5D5">
@@ -12,29 +16,5 @@
 
 <hr>
 
-<div class="row">
-
-  <div class="col-md-12">
-    <app-exchange-overview>
-    </app-exchange-overview>
-  </div>
-
-  <!-- <div class="col-md-3">
-    <app-ticker [symbol]="bitfinexSymbol">
-    </app-ticker>
-    <br>
-    <app-quote [symbol]="bitfinexSymbol">
-    </app-quote>
-  </div>
-
-  <div class="col-md-7">
-    <app-chart [symbol]="bitfinexSymbol">
-    </app-chart>
-  </div>
-
-  <div class="col-md-2">
-    <app-orderbook [symbol]="bitfinexSymbol" orientation="vertical">
-    </app-orderbook>
-  </div> -->
-
-</div>
+<router-outlet>
+</router-outlet>

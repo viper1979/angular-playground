@@ -61,7 +61,7 @@
           <td class="text-right">{{ask.levelAmount | number:'1.2-2'}}</td>
         </tr>
 
-        <tr>
+        <tr *ngIf="last">
           <td><b>{{last.orderPrice | number:'1.2-2'}}</b></td>
           <td class="text-right" [ngClass]="{ 'blur-out-expand-fwd': true }"><b>{{last.amount | number:'1.4-4'}}</b></td>
           <td class="text-right"><b>{{last.orderType}}</b></td>

@@ -2,16 +2,14 @@ import { Component, Input, OnInit, OnChanges, OnDestroy, SimpleChanges } from '@
 import { BitfinexService } from 'app/api/bitfinex/bitfinex.service';
 import { TradeMessage } from 'app/api/bitfinex/bitfinex-channel-messages';
 import { BitfinexChannelSubscription } from 'app/api/bitfinex/bitfinex-channels';
-import { Subscription } from 'rxjs/Subscription';
 import 'rxjs/Rx';
 
 @Component({
-  selector: 'app-quote',
-  templateUrl: './quote.component.html',
-  styleUrls: ['./quote.component.css']
+  selector: 'app-trades',
+  templateUrl: './trades.component.html',
+  styleUrls: ['./trades.component.css']
 })
-export class QuoteComponent implements OnInit, OnChanges, OnDestroy {
-  private _subscription: Subscription;
+export class TradesComponent implements OnInit, OnChanges, OnDestroy {
   private _bitfinexSubscription: BitfinexChannelSubscription;
 
   lastTrades: TradeMessage[];
@@ -19,7 +17,7 @@ export class QuoteComponent implements OnInit, OnChanges, OnDestroy {
   @Input( )
   symbol: string;
 
-  constructor(private _quoteService: BitfinexService) {
+  constructor(private _bitfinexService: BitfinexService) {
   }
 
   ngOnInit() {
@@ -27,18 +25,18 @@ export class QuoteComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   ngOnChanges(changes: SimpleChanges) {
-    console.log('QuoteComponent | ngOnChanges | changes: ' + JSON.stringify(changes) );
+    console.log('TradesComponent | ngOnChanges | changes: ' + JSON.stringify(changes) );
 
     if (changes.symbol.currentValue.length === 6) {
       if (this._bitfinexSubscription) {
-        this._quoteService.unsubscribe( this._bitfinexSubscription );
+        this._bitfinexService.unsubscribe( this._bitfinexSubscription );
       }
 
-      console.log( 'QuoteComponent | ngOnChanges | Trying to subscribe to symbol: ' + this.symbol);
-      this._bitfinexSubscription = this._quoteService.getTradeListener( this.symbol );
+      console.log( 'TradesComponent | ngOnChanges | Trying to subscribe to symbol: ' + this.symbol);
+      this._bitfinexSubscription = this._bitfinexService.getTradeListener( this.symbol );
 
       this._bitfinexSubscription.heartbeat.subscribe(
-        hb => console.log( 'QuoteComponent | Channel \'' + hb.channel + '\' heartbeat @ ' + hb.timestamp )
+        hb => console.log( 'TradesComponent | Channel \'' + hb.channel + '\' heartbeat @ ' + hb.timestamp )
       );
 
       this._bitfinexSubscription.listener.subscribe(
@@ -50,15 +48,15 @@ export class QuoteComponent implements OnInit, OnChanges, OnDestroy {
           }
           this.lastTrades.splice(0, 0, tradeMessage);
         },
-        error => console.log( 'QuoteComponent | ngOnChanges | error: ' + JSON.stringify(error) ),
-        () => console.log( 'QuoteComponent | ngOnChanges | completed' )
+        error => console.log( 'TradesComponent | ngOnChanges | error: ' + JSON.stringify(error) ),
+        () => console.log( 'TradesComponent | ngOnChanges | completed' )
       );
     }
   }
 
   ngOnDestroy() {
-    if (this._subscription) {
-      this._subscription.unsubscribe();
+    if (this._bitfinexSubscription) {
+      this._bitfinexService.unsubscribe(this._bitfinexSubscription);
     }
   }
 }
