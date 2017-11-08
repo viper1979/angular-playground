@@ -38,7 +38,10 @@ export class ExchangeOverviewComponent implements OnInit, OnDestroy {
       }
     });
 
-    this.primaryAssets.forEach( item => console.log( item ) );
+    /* DEBUG DEBUG DEBUG */
+    // this.primaryAssets = [];
+    // this.primaryAssets.push( 'BTC' );
+    /*********************/
 
     // subscribe to each available symbol
     for (let i = 0; i < availableSymbols.length; i++) {

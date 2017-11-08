@@ -208,6 +208,5 @@ export class PrimeNgDataset {
   data: number[] = [];
 
   constructor( ) {
-    this.label = '';
   }
 }
