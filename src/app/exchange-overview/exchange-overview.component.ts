@@ -11,12 +11,12 @@ import { ArrayHelper } from 'app/shared/helper/array-helper';
 })
 export class ExchangeOverviewComponent implements OnInit, OnDestroy {
   private _assetPairs: Map<string, AssetPair>;
-  private _sortedAssetPairs: Map<string, AssetPair[]>;
+  private _sortedAssetPairs: Map<string, AssetPairs>;
   primaryAssets: string[];
 
   constructor(private _bitfinexService: BitfinexService) {
     this._assetPairs = new Map<string, AssetPair>( );
-    this._sortedAssetPairs = new Map<string, AssetPair[]>( );
+    this._sortedAssetPairs = new Map<string, AssetPairs>( );
     this.primaryAssets = [];
   }
 
@@ -55,7 +55,7 @@ export class ExchangeOverviewComponent implements OnInit, OnDestroy {
     }
   }
 
-  getAssetPairs( primaryCurrency: string ): AssetPair[] {
+  getAssetPairs( primaryCurrency: string ): AssetPairs {
     // check if we already have the sorted array in cache
     if (this._sortedAssetPairs.has(primaryCurrency)) {
       return this._sortedAssetPairs.get(primaryCurrency);
@@ -63,17 +63,18 @@ export class ExchangeOverviewComponent implements OnInit, OnDestroy {
 
     // get all symbols which starts with the given currency-key
     let matchingSymbols = Array.from( this._assetPairs.keys( ) ).filter( item => item.substring( 0, 3 ) === primaryCurrency );
-    let matchingAssetPairs: AssetPair[] = [];
+    let matchingAssetPairs = new AssetPairs( );
 
     // get all assetPairs for the matching symbols
     matchingSymbols.forEach( item => {
-      matchingAssetPairs.push( this._assetPairs.get( item ) );
+      matchingAssetPairs.pairs.push( this._assetPairs.get( item ) );
     });
 
     // when every assetPair already has a 'volume' than sort all pairs by their volume and store them in a cache
-    if (matchingAssetPairs.every(pair => pair.tickerMessage && pair.tickerMessage.volume > 0)) {
-      this._sortedAssetPairs.set( primaryCurrency, matchingAssetPairs.sort((a, b) => a.tickerMessage.volume > b.tickerMessage.volume ? -1 : 1) );
-      matchingAssetPairs = this._sortedAssetPairs.get( primaryCurrency );
+    if (matchingAssetPairs.pairs.every(pair => pair.tickerMessage && pair.tickerMessage.volume > 0)) {
+      matchingAssetPairs.pairs = matchingAssetPairs.pairs.sort((a, b) => a.tickerMessage.volume > b.tickerMessage.volume ? -1 : 1);
+      matchingAssetPairs.finalSorting = true;
+      this._sortedAssetPairs.set( primaryCurrency, matchingAssetPairs );
     }
 
     return matchingAssetPairs;
@@ -83,9 +84,11 @@ export class ExchangeOverviewComponent implements OnInit, OnDestroy {
 export class AssetPairs {
   primaryCurrency: string;
   pairs: AssetPair[];
+  finalSorting: boolean;
 
   constructor( ) {
     this.pairs = [];
+    this.finalSorting = false;
   }
 }
 

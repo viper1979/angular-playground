@@ -8,7 +8,7 @@ import { AssetPairs } from 'app/exchange-overview/exchange-overview.component';
 })
 export class ExchangeAssetPairsComponent implements OnInit {
   @Input( )
-  assetPairs: AssetPairs[]
+  assetPairs: AssetPairs
 
   constructor() { }
 
