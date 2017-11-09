@@ -1,5 +1,5 @@
 import { BehaviorSubject, Observable } from 'rxjs/Rx';
-import { BitfinexChannelMessage, TradeMessage, TickerMessage, BookMessage, CandleMessage } from 'app/api/bitfinex/bitfinex-channel-messages';
+import { BitfinexChannelMessage, TradeMessage, TickerMessage, BookMessage, CandleMessage, CandleSnapshotMessage } from 'app/api/bitfinex/bitfinex-channel-messages';
 import { EventEmitter } from '@angular/core';
 
 export class BitfinexChannelSubscription {
@@ -262,6 +262,9 @@ export class BitfinexCandleChannel extends BitfinexChannel {
 
     if (parsedMessage) {
       if (parsedMessage[1][0] instanceof Array) {
+        let snapshot: CandleSnapshotMessage = new CandleSnapshotMessage( );
+        snapshot.channelId = parsedMessage[0];
+
         parsedMessage[1].forEach(element => {
           let candleMessage = new CandleMessage( );
           candleMessage.channelId = parsedMessage[0];
@@ -272,8 +275,11 @@ export class BitfinexCandleChannel extends BitfinexChannel {
           candleMessage.low = element[4];
           candleMessage.volume = element[5];
 
-          this.listener.next( candleMessage );
+          snapshot.messages.push( candleMessage );
+          // this.listener.next( candleMessage );
         });
+
+        this.listener.next( snapshot );
       } else {
 
         let candleMessage = new CandleMessage( );

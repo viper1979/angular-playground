@@ -1,8 +1,10 @@
 export class BitfinexChannelMessage {
   channelId: number;
   messageType?: string;
+  isSnapshotMessage: boolean;
 
   constructor( ) {
+    this.isSnapshotMessage = false;
   }
 }
 
@@ -41,6 +43,15 @@ export class CandleMessage extends BitfinexChannelMessage {
 
   constructor() {
     super();
+  }
+}
+
+export class CandleSnapshotMessage extends BitfinexChannelMessage {
+  messages: CandleMessage[];
+
+  constructor () {
+    super();
+    this.messages = [];
   }
 }
 

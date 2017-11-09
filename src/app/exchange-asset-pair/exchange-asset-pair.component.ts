@@ -3,7 +3,7 @@ import { trigger, state, style, animate, transition } from '@angular/animations'
 import { AssetPair } from 'app/exchange-overview/exchange-overview.component';
 import { BitfinexService } from 'app/api/bitfinex/bitfinex.service';
 import { BitfinexChannelSubscription } from 'app/api/bitfinex/bitfinex-channels';
-import { TickerMessage, CandleMessage } from 'app/api/bitfinex/bitfinex-channel-messages';
+import { TickerMessage, CandleMessage, CandleSnapshotMessage } from 'app/api/bitfinex/bitfinex-channel-messages';
 import { Router, ActivatedRoute } from '@angular/router';
 import { UIChart } from 'primeng/primeng';
 import { PrimeNgChartData } from 'app/chart/chart.component';
@@ -107,12 +107,26 @@ export class ExchangeAssetPairComponent implements OnInit, OnChanges, OnDestroy 
     this._bitfinexChartSubscription = this._bitfinexService.getCandleListener( this.assetPair.symbol, {timeframe: '15m'} );
     this._bitfinexChartSubscription.listener.subscribe(
       next => {
-        let candleMessage: CandleMessage = next as CandleMessage;
+        let candleMessage: CandleMessage | CandleSnapshotMessage;
+        if (next.isSnapshotMessage) {
+          candleMessage = next as CandleSnapshotMessage;
 
-        this._chartData.set(candleMessage.timestamp.toString( ), candleMessage);
-        if (this._chartData.size > 96) {
-          let firstKey = Array.from( this._chartData.keys( ) ).sort( (d1, d2) => this.DateComparer( d1, d2) )[0];
-          this._chartData.delete(firstKey);
+          candleMessage.messages.forEach( cm => {
+            this._chartData.set(cm.timestamp.toString( ), cm);
+            if (this._chartData.size > 96) {
+              let firstKey = Array.from( this._chartData.keys( ) ).sort( (d1, d2) => this.DateComparer( d1, d2) )[0];
+              this._chartData.delete(firstKey);
+            }
+          });
+
+        } else {
+          candleMessage = next as CandleMessage;
+
+          this._chartData.set(candleMessage.timestamp.toString( ), candleMessage);
+          if (this._chartData.size > 96) {
+            let firstKey = Array.from( this._chartData.keys( ) ).sort( (d1, d2) => this.DateComparer( d1, d2) )[0];
+            this._chartData.delete(firstKey);
+          }
         }
 
         this.chartData.labels = [];
