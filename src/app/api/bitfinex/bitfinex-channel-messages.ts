@@ -52,6 +52,7 @@ export class CandleSnapshotMessage extends BitfinexChannelMessage {
   constructor () {
     super();
     this.messages = [];
+    this.isSnapshotMessage = true;
   }
 }
 

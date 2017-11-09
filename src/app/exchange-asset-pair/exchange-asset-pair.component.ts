@@ -47,7 +47,8 @@ export class ExchangeAssetPairComponent implements OnInit, OnChanges, OnDestroy 
 
   private _bitfinexChannelSubscription: BitfinexChannelSubscription;
   private _bitfinexChartSubscription: BitfinexChannelSubscription;
-  private _chartData: Map<string, CandleMessage>;
+  // private _chartData: Map<string, CandleMessage>;
+  private _chartData: CandleMessage[];
 
   priceChangeState: string = 'equal';
   chartData: PrimeNgChartData;
@@ -61,7 +62,7 @@ export class ExchangeAssetPairComponent implements OnInit, OnChanges, OnDestroy 
   }
 
   ngOnInit() {
-    this._chartData = new Map<string, CandleMessage>( );
+    this._chartData = [];
     this.chartData = new PrimeNgChartData( );
 
     this.chartOptions = {
@@ -104,48 +105,44 @@ export class ExchangeAssetPairComponent implements OnInit, OnChanges, OnDestroy 
       () => console.log( 'completed' )
     );
 
-    this._bitfinexChartSubscription = this._bitfinexService.getCandleListener( this.assetPair.symbol, {timeframe: '15m'} );
-    this._bitfinexChartSubscription.listener.subscribe(
-      next => {
-        let candleMessage: CandleMessage | CandleSnapshotMessage;
-        if (next.isSnapshotMessage) {
-          candleMessage = next as CandleSnapshotMessage;
+    if (this.primaryPair) {
+      this._bitfinexChartSubscription = this._bitfinexService.getCandleListener( this.assetPair.symbol, {timeframe: '15m'} );
+      this._bitfinexChartSubscription.listener.subscribe(
+        next => {
+          let candleMessage: CandleMessage | CandleSnapshotMessage;
 
-          candleMessage.messages.forEach( cm => {
-            this._chartData.set(cm.timestamp.toString( ), cm);
-            if (this._chartData.size > 96) {
-              let firstKey = Array.from( this._chartData.keys( ) ).sort( (d1, d2) => this.DateComparer( d1, d2) )[0];
-              this._chartData.delete(firstKey);
+          if (next.isSnapshotMessage) {
+            candleMessage = next as CandleSnapshotMessage;
+
+            this._chartData = candleMessage.messages.sort( (d1, d2) => d1.timestamp.getTime( ) - d2.timestamp.getTime( ) ).slice( candleMessage.messages.length - 96);
+          } else {
+            candleMessage = next as CandleMessage;
+            let timestamp = candleMessage.timestamp;
+
+            let indexToReplace = this._chartData.findIndex( item => item.timestamp.getTime( ) === timestamp.getTime( ) );
+
+            if (indexToReplace >= 0) {
+              this._chartData[indexToReplace] = candleMessage;
+            } else {
+              this._chartData.splice( 0, 1 );
+              this._chartData.push( candleMessage );
             }
-          });
+          }
 
-        } else {
-          candleMessage = next as CandleMessage;
+          this.chartData.labels = [];
+          this.chartData.labels = this._chartData.map( item => item.timestamp.toLocaleTimeString( ) );
+          this.chartData.datasets[0].data = this._chartData.map( item => item.close );
+          this.chartData.datasets[0].label = this.assetPair.symbol;
 
-          this._chartData.set(candleMessage.timestamp.toString( ), candleMessage);
-          if (this._chartData.size > 96) {
-            let firstKey = Array.from( this._chartData.keys( ) ).sort( (d1, d2) => this.DateComparer( d1, d2) )[0];
-            this._chartData.delete(firstKey);
+          if (this.chart) {
+            this.chart.refresh( );
+          } else {
+            // TODO: when primary pair changes we have an undefined chart!!
+            console.log( 'chart undefined for pair: ' + this.assetPair.symbol );
           }
         }
-
-        this.chartData.labels = [];
-        this.chartData.datasets[0].data = [];
-        this.chartData.datasets[0].label = this.assetPair.symbol;
-
-        Array.from( this._chartData.keys( ) ).sort( (d1, d2) => this.DateComparer( d1, d2) ).forEach(element => {
-          let candle = this._chartData.get(element);
-
-          let displayTimestamp = candle.timestamp.toLocaleDateString();
-          this.chartData.labels.push( displayTimestamp );
-          this.chartData.datasets[0].data.push( this._chartData.get(element).close );
-        });
-
-        if (this.chart) {
-          this.chart.refresh( );
-        }
-      }
-    );
+      );
+    }
   }
 
   ngOnChanges(changes: SimpleChanges) {

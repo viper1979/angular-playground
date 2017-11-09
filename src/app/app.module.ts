@@ -22,7 +22,7 @@ import { ExchangeAssetPairsComponent } from './exchange-asset-pairs/exchange-ass
 import { ExchangeTradingViewComponent } from './exchange-trading-view/exchange-trading-view.component';
 
 const appRoutes: Routes = [
-  { path: 'bitfinex/:bitfinexSymbol', component: ExchangeTradingViewComponent },
+  { path: ':exchange/:bitfinexSymbol', component: ExchangeTradingViewComponent },
   { path: '**', component: ExchangeOverviewComponent }
 ];
 

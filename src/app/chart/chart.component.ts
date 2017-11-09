@@ -1,6 +1,6 @@
 import { Component, OnInit, OnDestroy, OnChanges, SimpleChanges, Input, ViewChild } from '@angular/core';
 import { BitfinexService } from 'app/api/bitfinex/bitfinex.service';
-import { CandleMessage } from 'app/api/bitfinex/bitfinex-channel-messages';
+import { CandleMessage, CandleSnapshotMessage } from 'app/api/bitfinex/bitfinex-channel-messages';
 import { BitfinexChannelSubscription } from 'app/api/bitfinex/bitfinex-channels';
 import { UIChart } from 'primeng/primeng';
 
@@ -11,7 +11,7 @@ import { UIChart } from 'primeng/primeng';
 })
 export class ChartComponent implements OnInit, OnChanges, OnDestroy {
   private _bitfinexSubscription: BitfinexChannelSubscription;
-  private _chartData: Map<string, CandleMessage>;
+  private _chartData: CandleMessage[];
 
   @ViewChild('chart')
   chart: UIChart;
@@ -36,7 +36,7 @@ export class ChartComponent implements OnInit, OnChanges, OnDestroy {
     this.chartData = new PrimeNgChartData( );
     this.chartDataVolume = new PrimeNgChartData( );
 
-    this._chartData = new Map<string, CandleMessage>( );
+    this._chartData = [];
 
     this.volumeChartOptions = {
       title: {
@@ -81,7 +81,7 @@ export class ChartComponent implements OnInit, OnChanges, OnDestroy {
     }
 
     // reset variables
-    this._chartData = new Map<string, CandleMessage>( );
+    this._chartData = [];
     this.chartData = new PrimeNgChartData( );
     this.chartDataVolume = new PrimeNgChartData( );
     this.chartData.datasets[0].label = this.symbol;
@@ -96,36 +96,36 @@ export class ChartComponent implements OnInit, OnChanges, OnDestroy {
 
     this._bitfinexSubscription.listener.subscribe(
       next => {
-        let candleMessage: CandleMessage = next as CandleMessage;
+        let candleMessage: CandleMessage | CandleSnapshotMessage;
 
-        this._chartData.set(candleMessage.timestamp.toString( ), candleMessage);
-        if (this._chartData.size > 200) {
-          let firstKey = Array.from( this._chartData.keys( ) ).sort( (d1, d2) => this.DateComparer( d1, d2) )[0];
-          this._chartData.delete(firstKey);
+        if (next.isSnapshotMessage) {
+          candleMessage = next as CandleSnapshotMessage;
+
+          this._chartData = candleMessage.messages.sort( (d1, d2) => d1.timestamp.getTime( ) - d2.timestamp.getTime( ) ).slice( candleMessage.messages.length - 200);
+        } else {
+          candleMessage = next as CandleMessage;
+          let timestamp = candleMessage.timestamp;
+
+          let indexToReplace = this._chartData.findIndex( item => item.timestamp.getTime( ) === timestamp.getTime( ) );
+
+          if (indexToReplace >= 0) {
+            this._chartData[indexToReplace] = candleMessage;
+          } else {
+            this._chartData.splice( 0, 1 );
+            this._chartData.push( candleMessage );
+          }
         }
 
         this.chartData.labels = [];
-        this.chartData.datasets[0].data = [];
+        this.chartData.labels = this._chartData.map( item => this.GetDisplayTimestamp( item.timestamp ) );
+        this.chartData.datasets[0].data = this._chartData.map( item => item.close );
         this.chartData.datasets[0].label = this.symbol;
 
         this.chartDataVolume.labels = [];
-        this.chartDataVolume.datasets[0].data = [];
+        this.chartDataVolume.labels = this._chartData.map( item => this.GetDisplayTimestamp( item.timestamp ) );
+        this.chartDataVolume.datasets[0].data = this._chartData.map( item => item.volume );
         this.chartDataVolume.datasets[0].label = this.symbol;
 
-        Array.from( this._chartData.keys( ) ).sort( (d1, d2) => this.DateComparer( d1, d2) ).forEach(element => {
-          let candle = this._chartData.get(element);
-
-          // let displayTimestamp = ( candle.timestamp.getHours() < 10 ? '0' + candle.timestamp.getHours( ) : candle.timestamp.getHours( ) ) + ':';
-          // displayTimestamp += candle.timestamp.getMinutes() < 10 ? '0' + candle.timestamp.getMinutes( ) : candle.timestamp.getMinutes( );
-
-          let displayTimestamp = this.GetDisplayTimestamp( candle.timestamp );
-
-          this.chartData.labels.push( displayTimestamp );
-          this.chartData.datasets[0].data.push( this._chartData.get(element).close );
-
-          this.chartDataVolume.labels.push( displayTimestamp );
-          this.chartDataVolume.datasets[0].data.push( this._chartData.get(element).volume );
-        });
         this.chart.refresh( );
         this.volumeChart.refresh( );
 
