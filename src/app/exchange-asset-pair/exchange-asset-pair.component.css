@@ -14,6 +14,10 @@ a {
   color: #000;
 }
 
+a:hover {
+  background-color: #d8d7d7
+}
+
 .borderLight {
   border-right: 1px solid #d8d7d7;
   border-top: 1px solid #d8d7d7;
