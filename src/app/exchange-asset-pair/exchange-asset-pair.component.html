@@ -1,22 +1,25 @@
-<div class="extendedPair">
-  <a [routerLink]="['/bitfinex', assetPair.symbol]">
-    <div class="row" *ngIf="primaryPair">
+<a class="ranking-row" [routerLink]="['/bitfinex', assetPair.symbol]">
+  <div class="link-container">
+    <div class="row header" *ngIf="primaryPair">
       <div class="col-xs-3">{{assetPair.symbol.substring(0,3)}}</div>
       <div class="col-xs-3">{{assetPair.symbol.substring(3)}}</div>
       <div class="col-xs-3">{{assetPair.tickerMessage?.lastPrice | number:'1.2-2'}}</div>
       <div class="col-xs-3">{{assetPair.tickerMessage?.dailyChangePercent | number:'1.2-2'}}</div>
     </div>
 
-    <p-chart #chart24h type="line" [data]="chartData" [options]="chartOptions" *ngIf="primaryPair"></p-chart>
+    <div class="chart-wrapper" *ngIf="primaryPair">
+      <p-chart #chart24h type="line" [data]="chartData" [options]="chartOptions"></p-chart>
+    </div>
 
-    <div class="row">
+    <div class="row rankingRow">
       <div class="col-xs-2">{{assetPair.exchange}}</div>
       <div class="col-xs-4" [@priceChangeState]="priceChangeState">{{assetPair.symbol.substring(3)}} {{assetPair.tickerMessage?.lastPrice | number:'1.2-2'}}</div>
       <div class="col-xs-3">{{assetPair.tickerMessage?.volume | volumeShortener}}</div>
       <div class="col-xs-3">{{assetPair.tickerMessage?.dailyChangePercent | number:'1.2-2'}}</div>
     </div>
-  </a>
-</div>
+  </div>
+</a>
+
 
 
 

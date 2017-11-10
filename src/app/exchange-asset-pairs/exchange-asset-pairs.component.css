@@ -1,7 +1,12 @@
-.flexContainer {
+/* .flexContainer {
   display: flex;
   flex-direction: row;
   flex-wrap: wrap;
   justify-content: flex-start;
   align-items: flex-start;
+} */
+
+.ranking-cell {
+  padding: 10px 10px 5px;
+  font-family: droid sans mono, monospace;
 }

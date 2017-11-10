@@ -1,24 +1,25 @@
-div.simplePair:hover {
+div.link-container:hover {
   background-color: #d8d7d7
 }
 
-div.extendedPair:hover {
-  background-color: #d8d7d7
+.header {
+  font-size: 20px;
 }
 
-.flexItem {
-  flex-grow: 1;
+.exchangeList {
+  padding: 5px 10px;
 }
 
 a {
   color: #000;
 }
 
-a:hover {
-  background-color: #d8d7d7
+.rankingRow {
+  border-bottom: 1px solid #d8d7d7;
+  border-left: 1px solid #d8d7d7;
+  border-right: 1px solid #d8d7d7;
 }
 
-.borderLight {
-  border-right: 1px solid #d8d7d7;
-  border-top: 1px solid #d8d7d7;
+.chart-wrapper {
+  height: 220px;
 }

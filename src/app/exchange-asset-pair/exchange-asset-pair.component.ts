@@ -26,12 +26,12 @@ import { PrimeNgChartData } from 'app/chart/chart.component';
         }),
         animate('1500ms linear')
       ]),
-      transition('* => equal', [
-        style({
-          backgroundColor: '#afb6ff'
-        }),
-        animate('1500ms linear')
-      ])
+      // transition('* => equal', [
+      //   style({
+      //     backgroundColor: '#afb6ff'
+      //   }),
+      //   animate('1500ms linear')
+      // ])
     ])
   ]
 })
@@ -56,6 +56,7 @@ export class ExchangeAssetPairComponent implements OnInit, OnChanges, OnDestroy 
   priceChangeState: string = 'equal';
   chartData: PrimeNgChartData;
   chartOptions: any;
+  showChart: boolean = false;
 
   constructor(
     private _bitfinexService: BitfinexService,
@@ -149,19 +150,6 @@ export class ExchangeAssetPairComponent implements OnInit, OnChanges, OnDestroy 
     if (this._bitfinexChartSubscription) {
       this._bitfinexService.unsubscribe(this._bitfinexChartSubscription);
     }
-  }
-
-  private DateComparer( date1: string, date2: string ): number {
-    let dDate1 = new Date( date1 );
-    let dDate2 = new Date( date2 );
-
-    if (dDate1 > dDate2) {
-      return 1;
-    }
-    if (dDate2 > dDate1) {
-      return -1;
-    }
-    return 0;
   }
 
   private getChartOptions( ): any {
