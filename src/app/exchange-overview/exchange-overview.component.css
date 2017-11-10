@@ -1,0 +1,11 @@
+.flexContainer {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+  align-items: flex-start;
+}
+
+.flexItem {
+  flex-basis: 19.95%;
+}

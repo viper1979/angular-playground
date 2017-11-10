@@ -1,5 +1,5 @@
-<div class="row">
-  <div class="col-md-3" *ngFor="let primaryAsset of primaryAssets">
+<div class="flexContainer">
+  <div class="flexItem" *ngFor="let primaryAsset of primaryAssets">
     <app-exchange-asset-pairs [assetPairs]="getAssetPairs(primaryAsset)">
     </app-exchange-asset-pairs>
   </div>

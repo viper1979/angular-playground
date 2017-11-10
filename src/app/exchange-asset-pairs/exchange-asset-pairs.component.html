@@ -1,5 +1,8 @@
 <!-- <div class="flexContainer"> -->
-<div class="ranking-cell">
-  <app-exchange-asset-pair [assetPair]="assetPair" [primaryPair]="i===0?true:false" [finalSorting]="assetPairs.finalSorting" *ngFor="let assetPair of assetPairs.pairs; let i = index">
+<div class="monoFont">
+  <app-exchange-asset-pair [assetPair]="assetPair"
+                           [primaryPair]="i===0?true:false"
+                           [finalSorting]="assetPairs.finalSorting"
+                           *ngFor="let assetPair of assetPairs.pairs; let i = index">
   </app-exchange-asset-pair>
 </div>
