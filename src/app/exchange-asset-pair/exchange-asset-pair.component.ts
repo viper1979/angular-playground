@@ -16,13 +16,15 @@ import { ICandleMessage, ITickerMessage, ICandleSnapshotMessage } from 'app/shar
     trigger('priceChangeState', [
       transition('* => higher', [
         style({
-          backgroundColor: '#27f75b'
+          backgroundColor: '#27f75b',
+          color: '#00ff00'
         }),
         animate('1500ms linear')
       ]),
       transition('* => lower', [
         style({
-          backgroundColor: '#ff0000'
+          backgroundColor: '#ff0000',
+          color: '#aa3300'
         }),
         animate('1500ms linear')
       ]),

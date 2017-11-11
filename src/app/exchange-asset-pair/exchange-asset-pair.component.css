@@ -42,18 +42,22 @@
 }
 
 .asset-pair-header-change {
-  padding-left: 25px;
+  padding-left: 70px;
   flex-basis: 40%;
 }
 
 .link-container {
   padding: 5px 10px;
-  border-top: 1px solid #f00;
-  border-right: 1px solid #f00;
+  border-top: 1px solid rgb(88, 88, 88);
+  border-right: 1px solid rgb(88, 88, 88);
 }
 
 .link-container:hover {
   background-color: #d8d7d7
+}
+
+.weak {
+  color: #8d8d8d;
 }
 
 .header {
@@ -62,6 +66,7 @@
 
 a {
   color: #000;
+  text-decoration: none;
 }
 
 .rankingRow {
@@ -72,4 +77,12 @@ a {
 
 .chart-wrapper {
   height: 185px;
+}
+
+.negative {
+  color: rgb(200, 0, 0);;
+}
+
+.positive {
+  color: rgb(0, 175, 0);
 }

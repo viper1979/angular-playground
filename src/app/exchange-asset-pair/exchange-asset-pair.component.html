@@ -2,9 +2,11 @@
   <div class="link-container">
     <div class="asset-pair-header" style="width: 100%;" *ngIf="primaryPair">
       <div class="asset-pair-header-firstSymbol">{{assetPair.symbol.substring(0,3)}}</div>
-      <div class="asset-pair-header-secondSymbol">{{assetPair.symbol.substring(3)}}</div>
+      <div class="asset-pair-header-secondSymbol weak">{{assetPair.symbol.substring(3)}}</div>
       <div class="asset-pair-header-price">{{assetPair.tickerMessage?.lastPrice | number:'1.2-2'}}</div>
-      <div class="asset-pair-header-change">{{assetPair.tickerMessage?.dailyChangePercent | number:'1.2-2'}}%</div>
+      <div class="asset-pair-header-change" [ngClass]="assetPair.tickerMessage?.dailyChangePercent >= 0 ? 'positive' : 'negative'">
+        {{assetPair.tickerMessage?.dailyChangePercent >= 0 ? '+' : ''}}{{assetPair.tickerMessage?.dailyChangePercent | number:'1.2-2'}}%
+      </div>
     </div>
 
     <div class="chart-wrapper" *ngIf="primaryPair">
@@ -13,9 +15,16 @@
 
     <div class="asset-pair">
       <div class="asset-pair-exchange">{{assetPair.exchange}}</div>
-      <div class="asset-pair-price" [@priceChangeState]="priceChangeState">{{assetPair.symbol.substring(3)}} {{assetPair.tickerMessage?.lastPrice | number:'1.2-2'}}</div>
+      <div class="asset-pair-price" [@priceChangeState]="priceChangeState">
+        <span class="weak">
+          {{assetPair.symbol.substring(3)}}
+        </span>
+        {{assetPair.tickerMessage?.lastPrice | number:'1.2-2'}}
+      </div>
       <div class="asset-pair-volume">{{assetPair.tickerMessage?.volume | volumeShortener}}</div>
-      <div class="asset-pair-change">{{assetPair.tickerMessage?.dailyChangePercent | number:'1.2-2'}}%</div>
+      <div class="asset-pair-change" [ngClass]="assetPair.tickerMessage?.dailyChangePercent >= 0 ? 'positive' : 'negative'">
+        {{assetPair.tickerMessage?.dailyChangePercent >= 0 ? '+' : ''}}{{assetPair.tickerMessage?.dailyChangePercent | number:'1.2-2'}}%
+      </div>
     </div>
   </div>
 </a>

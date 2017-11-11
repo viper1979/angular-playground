@@ -1,16 +1,18 @@
-<div class="row">
-  <div class="col-md-1">
-    <a [routerLink]="['/']">HOME</a>
+<div class="container-fluid">
+  <div class="row">
+    <div class="col-md-1">
+      <a [routerLink]="['/']">HOME</a>
 
-  </div>
-  <div class="col-md-8 col-md-offset-1">
-      <p-autoComplete [(ngModel)]="bitfinexSymbol" [suggestions]="filteredSymbols" (completeMethod)="filterSymbols($event)" (onSelect)="changeDisplaySymbol($event)" placeholder="BTCUSD" [dropdown]="true">
-          <ng-template let-symbol pTemplate="item">
-              <div class="ui-helper-clearfix" style="border-bottom:1px solid #D5D5D5">
-                  {{symbol}}
-              </div>
-          </ng-template>
-      </p-autoComplete>
+    </div>
+    <div class="col-md-8 col-md-offset-1">
+        <p-autoComplete [(ngModel)]="bitfinexSymbol" [suggestions]="filteredSymbols" (completeMethod)="filterSymbols($event)" (onSelect)="changeDisplaySymbol($event)" placeholder="BTCUSD" [dropdown]="true">
+            <ng-template let-symbol pTemplate="item">
+                <div class="ui-helper-clearfix" style="border-bottom:1px solid #D5D5D5">
+                    {{symbol}}
+                </div>
+            </ng-template>
+        </p-autoComplete>
+    </div>
   </div>
 </div>
 

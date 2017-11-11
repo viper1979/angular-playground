@@ -70,7 +70,7 @@ export class ExchangeOverviewComponent implements OnInit, OnDestroy {
     });
 
     // when every assetPair already has a 'volume' than sort all pairs by their volume and store them in a cache
-    if (matchingAssetPairs.pairs.every(pair => pair.tickerMessage && pair.tickerMessage.volume > 0)) {
+    if (matchingAssetPairs.pairs.every(pair => pair.tickerMessage !== undefined && pair.tickerMessage !== null)) {
       matchingAssetPairs.pairs = matchingAssetPairs.pairs.sort((a, b) => a.tickerMessage.volume > b.tickerMessage.volume ? -1 : 1);
       matchingAssetPairs.finalSorting = true;
       this._sortedAssetPairs.set( primaryCurrency, matchingAssetPairs );
