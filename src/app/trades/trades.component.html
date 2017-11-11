@@ -13,13 +13,13 @@
   </thead>
   <tbody>
     <!-- <tr *ngFor="let trade of lastTrades" [ngClass]="{ 'danger': trade.orderType === 'SELL', 'success': trade.orderType === 'BUY', 'slide-in-bck-center': true }"> -->
-    <tr *ngFor="let trade of lastTrades" [ngClass]="{ 'sell': trade.orderType === 'SELL', 'buy': trade.orderType === 'BUY', 'slide-in-bck-center': true }">
+    <tr *ngFor="let trade of lastTrades" [ngClass]="{ 'sell': trade.orderType === orderType.SellOrder, 'buy': trade.orderType === orderType.BuyOrder, 'slide-in-bck-center': true }">
       <!-- <td>{{trade.tradeId}}</td> -->
       <td class="text-center">{{trade.timestamp | date:'HH:mm:ss'}}</td>
       <td>
-        <i class="fa fa-caret-square-o-up" aria-hidden="true" *ngIf="trade.orderType==='BUY'"></i>
-        <i class="fa fa-caret-square-o-down" aria-hidden="true" *ngIf="trade.orderType==='SELL'"></i>
-        {{trade.orderType}}
+        <i class="fa fa-caret-square-o-up" aria-hidden="true" *ngIf="trade.orderType === orderType.BuyOrder"></i>
+        <i class="fa fa-caret-square-o-down" aria-hidden="true" *ngIf="trade.orderType === orderType.SellOrder"></i>
+        {{trade.orderType === orderType.BuyOrder ? 'BUY' : 'SELL'}}
       </td>
       <td class="text-right">
         {{trade.orderPrice | number:'1.2-2'}}

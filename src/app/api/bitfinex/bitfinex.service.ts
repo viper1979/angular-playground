@@ -2,11 +2,13 @@ import { Injectable } from '@angular/core';
 import { BehaviorSubject } from 'rxjs/BehaviorSubject';
 import { Observable } from 'rxjs/Observable';
 import { BitfinexChannel, BitfinexTradeChannel, BitfinexTickerChannel, BitfinexChannelSubscription, BitfinexBooksChannel, BitfinexCandleChannel } from 'app/api/bitfinex/bitfinex-channels';
-import { BitfinexChannelMessage, TradeMessage } from 'app/api/bitfinex/bitfinex-channel-messages';
+import { ExchangeService } from 'app/shared/exchange-handler/exchange.service';
+import { IChannelSubscription } from 'app/shared/exchange-handler/interfaces/channel-subscription';
 import 'rxjs/Rx';
 
 @Injectable()
-export class BitfinexService {
+export class BitfinexService extends ExchangeService {
+  readonly exchangeName: string;
   private _this;
   private _apiUrl: string = 'wss://api.bitfinex.com/ws/2';
   private _socketConnection: WebSocket;
@@ -22,6 +24,9 @@ export class BitfinexService {
   private _queuedSubscriptions: Map<string, BitfinexChannel>;
 
   constructor() {
+    super( );
+
+    this.exchangeName = 'Bitfinex';
     this._activeSubscriptions = new Map<number, BitfinexChannel>( );
     this._queuedSubscriptions = new Map<string, BitfinexChannel>( );
 
@@ -33,7 +38,7 @@ export class BitfinexService {
     return this._availableSymbols;
   }
 
-  getTradeListener( symbol: string ): BitfinexChannelSubscription {
+  getTrades( symbol: string, options?: any ): IChannelSubscription {
     console.log( 'BitfinexService | getTradeListener | symbol: ' + symbol);
 
     let tradeChannels = Array.from( this._activeSubscriptions.values( ) ).filter( item => (item as BitfinexTradeChannel) !== undefined ) as BitfinexTradeChannel[];
@@ -57,7 +62,7 @@ export class BitfinexService {
     return channel.getSubscription( );
   }
 
-  getTickerListener( symbol: string ): BitfinexChannelSubscription {
+  getTicker( symbol: string, options?: any ): IChannelSubscription {
     console.log( 'BitfinexService | getTickerListener | symbol: ' + symbol );
 
     let tradeChannels = Array.from( this._activeSubscriptions.values( ) ).filter( item => (item as BitfinexTickerChannel) !== undefined ) as BitfinexTickerChannel[];
@@ -81,7 +86,7 @@ export class BitfinexService {
     return channel.getSubscription( );
   }
 
-  getBooksListener( symbol: string, options?: { prec: string, freq: string, length: string} ): BitfinexChannelSubscription {
+  getOrderBooks( symbol: string, options?: { prec: string, freq: string, length: string} ): IChannelSubscription {
     let booksChannels = Array.from( this._activeSubscriptions.values( ) ).filter( item => (item as BitfinexBooksChannel) !== undefined ) as BitfinexBooksChannel[];
     let channel = booksChannels.find( item => item.symbol === symbol );
 
@@ -103,7 +108,7 @@ export class BitfinexService {
     return channel.getSubscription( );
   }
 
-  getCandleListener( symbol: string, options?: {timeframe: string}): BitfinexChannelSubscription {
+  getCandles( symbol: string, options?: {timeframe: string}): IChannelSubscription {
     let finalSymbol = 'trade:' + (options ? options.timeframe : '1m') + ':t' + symbol.toUpperCase();
 
     let candleChannels = Array.from( this._activeSubscriptions.values( ) ).filter( item => (item as BitfinexCandleChannel) !== undefined ) as BitfinexCandleChannel[];
@@ -126,9 +131,9 @@ export class BitfinexService {
     return channel.getSubscription( );
   }
 
-  unsubscribe( subscription: BitfinexChannelSubscription ): boolean {
-    if (this._activeSubscriptions.has( subscription.channelId )) {
-      let channel = this._activeSubscriptions.get( subscription.channelId );
+  unsubscribe( subscription: IChannelSubscription ): boolean {
+    if (this._activeSubscriptions.has( subscription.channelIdentifier )) {
+      let channel = this._activeSubscriptions.get( subscription.channelIdentifier );
 
       if (this._socketConnection && this._socketConnection.readyState === 1) {
         this._socketConnection.send( channel.getUnsubscribeMessage( ) );
@@ -244,10 +249,10 @@ export class BitfinexService {
 
     if (cacheKey && cacheKey.length > 0) {
       let bitfenixChannel = this._queuedSubscriptions.get(cacheKey);
-      bitfenixChannel.channel = parsedMessage.channel;
-      bitfenixChannel.channelId = parsedMessage.chanId;
+      bitfenixChannel.channelName = parsedMessage.channel;
+      bitfenixChannel.channelIdentifier = parsedMessage.chanId;
 
-      this._activeSubscriptions.set(bitfenixChannel.channelId, bitfenixChannel);
+      this._activeSubscriptions.set(bitfenixChannel.channelIdentifier, bitfenixChannel);
       this._queuedSubscriptions.delete(cacheKey);
     } else {
       console.log('No queued subscription found for currency-pair: ' + pair);

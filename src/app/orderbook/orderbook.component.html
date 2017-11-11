@@ -64,7 +64,7 @@
         <tr *ngIf="last">
           <td><b>{{last.orderPrice | number:'1.2-2'}}</b></td>
           <td class="text-right" [ngClass]="{ 'blur-out-expand-fwd': true }"><b>{{last.amount | number:'1.4-4'}}</b></td>
-          <td class="text-right"><b>{{last.orderType}}</b></td>
+          <td class="text-right"><b>{{last.orderType === 0 ? 'BUY' : 'SELL'}}</b></td>
         </tr>
 
         <tr *ngFor="let bid of bidBook">
