@@ -1,14 +1,26 @@
-export class BitfinexChannelMessage {
-  channelId: number;
+import {
+  IChannelMessage,
+  ITradeMessage,
+  OrderType,
+  ICandleMessage,
+  ICandleSnapshotMessage,
+  OrderBookAction,
+  IOrderbookMessage,
+  ITickerMessage,
+  ITradeSnapshotMessage
+} from 'app/shared/exchange-handler/interfaces/channel-messages';
+
+export class BitfinexChannelMessage implements IChannelMessage {
+  channelIdentifier: number;
   messageType?: string;
-  isSnapshotMessage: boolean;
+  isSnapshot: boolean;
 
   constructor( ) {
-    this.isSnapshotMessage = false;
+    this.isSnapshot = false;
   }
 }
 
-export class TradeMessage extends BitfinexChannelMessage {
+export class BitfinexTradeMessage extends BitfinexChannelMessage implements ITradeMessage {
   tradeId: number;
   timestamp: Date;
 
@@ -16,16 +28,16 @@ export class TradeMessage extends BitfinexChannelMessage {
   set amount(value) {
     this._amount = Math.abs(value);
     if (value >= 0) {
-      this.orderType = 'BUY';
+      this.orderType = OrderType.BuyOrder;
     } else {
-      this.orderType = 'SELL';
+      this.orderType = OrderType.SellOrder;
     }
   }
   get amount() {
     return this._amount;
   }
 
-  orderType: string;
+  orderType: OrderType;
   orderPrice: number;
 
   constructor( ) {
@@ -33,7 +45,17 @@ export class TradeMessage extends BitfinexChannelMessage {
   }
 }
 
-export class CandleMessage extends BitfinexChannelMessage {
+export class BitfinexTradeSnapshotMessage extends BitfinexChannelMessage implements ITradeSnapshotMessage {
+  messages: BitfinexTradeMessage[];
+
+  constructor( ) {
+    super( );
+    this.messages = [];
+    this.isSnapshot = true;
+  }
+}
+
+export class BitfinexCandleMessage extends BitfinexChannelMessage implements ICandleMessage {
   timestamp: Date;
   open: number;
   high: number;
@@ -46,24 +68,17 @@ export class CandleMessage extends BitfinexChannelMessage {
   }
 }
 
-export class CandleSnapshotMessage extends BitfinexChannelMessage {
-  messages: CandleMessage[];
+export class BitfinexCandleSnapshotMessage extends BitfinexChannelMessage implements ICandleSnapshotMessage {
+  messages: BitfinexCandleMessage[];
 
   constructor () {
     super();
     this.messages = [];
-    this.isSnapshotMessage = true;
+    this.isSnapshot = true;
   }
 }
 
-export enum OrderBookAction {
-  UpdateBid,
-  UpdateAsk,
-  DeleteBid,
-  DeleteAsk
-}
-
-export class BookMessage extends BitfinexChannelMessage {
+export class BitfinexOrderbookMessage extends BitfinexChannelMessage implements IOrderbookMessage {
   price: number;
   rate: number;
   period: number;
@@ -97,7 +112,7 @@ export class BookMessage extends BitfinexChannelMessage {
   levelAmount: number;
 }
 
-export class TickerMessage extends BitfinexChannelMessage {
+export class BitfinexTickerMessage extends BitfinexChannelMessage implements ITickerMessage {
   bid: number;
   bidSize: number;
   ask: number;

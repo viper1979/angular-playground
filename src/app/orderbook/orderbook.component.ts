@@ -1,8 +1,7 @@
 import { Component, OnInit, OnDestroy, OnChanges, SimpleChanges, Input } from '@angular/core';
-import { BitfinexService } from 'app/api/bitfinex/bitfinex.service';
-import { BookMessage, OrderBookAction, TradeMessage } from 'app/api/bitfinex/bitfinex-channel-messages';
-import { BitfinexChannelSubscription } from 'app/api/bitfinex/bitfinex-channels';
-import { Subscription } from 'rxjs/Subscription';
+import { ExchangeService } from 'app/shared/exchange-handler/exchange.service';
+import { IChannelSubscription } from 'app/shared/exchange-handler/interfaces/channel-subscription';
+import { OrderBookAction, IOrderbookMessage, ITradeMessage } from 'app/shared/exchange-handler/interfaces/channel-messages';
 import 'rxjs/Rx';
 
 @Component({
@@ -11,15 +10,15 @@ import 'rxjs/Rx';
   styleUrls: ['./orderbook.component.css']
 })
 export class OrderbookComponent implements OnInit, OnChanges, OnDestroy {
-  private _bitfinexSubscription: BitfinexChannelSubscription;
-  private _bitfinexTradeSubscription: BitfinexChannelSubscription;
+  private _orderbookSubscription: IChannelSubscription;
+  private _tradeSubscription: IChannelSubscription;
 
-  private _askBook: Map<number, BookMessage>;
-  private _bidBook: Map<number, BookMessage>;
+  private _askBook: Map<number, IOrderbookMessage>;
+  private _bidBook: Map<number, IOrderbookMessage>;
 
-  askBook: BookMessage[];
-  bidBook: BookMessage[];
-  last: TradeMessage;
+  askBook: IOrderbookMessage[];
+  bidBook: IOrderbookMessage[];
+  last: ITradeMessage;
 
   @Input()
   symbol: string;
@@ -27,12 +26,12 @@ export class OrderbookComponent implements OnInit, OnChanges, OnDestroy {
   @Input()
   orientation: string;
 
-  constructor(private _bitfinexService: BitfinexService) {
+  constructor(private _exchangeService: ExchangeService) {
   }
 
   ngOnInit() {
-    this._askBook = new Map<number, BookMessage>( );
-    this._bidBook = new Map<number, BookMessage>( );
+    this._askBook = new Map<number, IOrderbookMessage>( );
+    this._bidBook = new Map<number, IOrderbookMessage>( );
     this.askBook = [];
     this.bidBook = [];
   }
@@ -41,20 +40,20 @@ export class OrderbookComponent implements OnInit, OnChanges, OnDestroy {
     console.log('OrderbookComponent | ngOnChanges | changes: ' + JSON.stringify(changes) );
 
     if (changes.symbol.currentValue.length === 6) {
-      if (this._bitfinexSubscription) {
-        this._bitfinexService.unsubscribe( this._bitfinexSubscription );
+      if (this._orderbookSubscription) {
+        this._exchangeService.unsubscribe( this._orderbookSubscription );
       }
 
-      this._askBook = new Map<number, BookMessage>( );
-      this._bidBook = new Map<number, BookMessage>( );
+      this._askBook = new Map<number, IOrderbookMessage>( );
+      this._bidBook = new Map<number, IOrderbookMessage>( );
       this.askBook = [];
       this.bidBook = [];
 
       console.log( 'OrderbookComponent | ngOnChanges | Trying to subscribe to symbol: ' + this.symbol);
-      this._bitfinexSubscription = this._bitfinexService.getBooksListener( this.symbol );
-      this._bitfinexSubscription.listener.subscribe(
+      this._orderbookSubscription = this._exchangeService.getOrderBooks( this.symbol );
+      this._orderbookSubscription.listener.subscribe(
         next => {
-          let bookMessage: BookMessage = next as BookMessage;
+          let bookMessage: IOrderbookMessage = next as IOrderbookMessage;
 
           // TODO: do something with the message
           // console.log( 'OrderbookComponent | ngOnChanges | bookMessage: ' + JSON.stringify( bookMessage ) );
@@ -147,16 +146,16 @@ export class OrderbookComponent implements OnInit, OnChanges, OnDestroy {
         () => console.log( 'OrderbookComponent | ngOnChanges | completed' )
       );
 
-      this._bitfinexTradeSubscription = this._bitfinexService.getTradeListener( this.symbol );
-      this._bitfinexTradeSubscription.listener.subscribe(
+      this._tradeSubscription = this._exchangeService.getTrades( this.symbol );
+      this._tradeSubscription.listener.subscribe(
         next => {
-          this.last = next as TradeMessage;
+          this.last = next as ITradeMessage;
         }
       )
     }
   }
 
-  private bookMessageComparer( bm1: BookMessage, bm2: BookMessage ): number {
+  private bookMessageComparer( bm1: IOrderbookMessage, bm2: IOrderbookMessage ): number {
     if (bm1.price > bm2.price) {
       return 1;
     }
@@ -167,8 +166,8 @@ export class OrderbookComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   ngOnDestroy() {
-    if (this._bitfinexSubscription) {
-      this._bitfinexService.unsubscribe(this._bitfinexSubscription);
+    if (this._orderbookSubscription) {
+      this._exchangeService.unsubscribe(this._orderbookSubscription);
     }
   }
 }

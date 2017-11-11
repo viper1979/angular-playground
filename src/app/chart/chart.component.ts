@@ -1,8 +1,8 @@
 import { Component, OnInit, OnDestroy, OnChanges, SimpleChanges, Input, ViewChild } from '@angular/core';
-import { BitfinexService } from 'app/api/bitfinex/bitfinex.service';
-import { CandleMessage, CandleSnapshotMessage } from 'app/api/bitfinex/bitfinex-channel-messages';
-import { BitfinexChannelSubscription } from 'app/api/bitfinex/bitfinex-channels';
+import { ExchangeService } from 'app/shared/exchange-handler/exchange.service';
 import { UIChart } from 'primeng/primeng';
+import { ICandleMessage, ICandleSnapshotMessage } from 'app/shared/exchange-handler/interfaces/channel-messages';
+import { IChannelSubscription } from 'app/shared/exchange-handler/interfaces/channel-subscription';
 
 @Component({
   selector: 'app-chart',
@@ -10,8 +10,8 @@ import { UIChart } from 'primeng/primeng';
   styleUrls: ['./chart.component.css']
 })
 export class ChartComponent implements OnInit, OnChanges, OnDestroy {
-  private _bitfinexSubscription: BitfinexChannelSubscription;
-  private _chartData: CandleMessage[];
+  private _candleSubscription: IChannelSubscription;
+  private _chartData: ICandleMessage[];
 
   @ViewChild('chart')
   chart: UIChart;
@@ -24,12 +24,13 @@ export class ChartComponent implements OnInit, OnChanges, OnDestroy {
 
   chartData: PrimeNgChartData;
   chartDataVolume: PrimeNgChartData;
+  chartOptions: any;
   volumeChartOptions: any;
 
   selectedTimeframe: string = '1m';
   availableTimeframes: any[];
 
-  constructor(private _bitfinexService: BitfinexService) {
+  constructor(private _exchangeService: ExchangeService) {
   }
 
   ngOnInit() {
@@ -38,14 +39,8 @@ export class ChartComponent implements OnInit, OnChanges, OnDestroy {
 
     this._chartData = [];
 
-    this.volumeChartOptions = {
-      title: {
-        display: false,
-      },
-      legend: {
-        display: false
-      }
-    };
+    this.chartOptions = this.getChartOptions( );
+    this.volumeChartOptions = this.getVolumeChartOptions( );
 
     this.availableTimeframes = [
       {label: 'one minute', value: '1m'},
@@ -70,14 +65,14 @@ export class ChartComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   ngOnDestroy() {
-    if (this._bitfinexSubscription) {
-      this._bitfinexService.unsubscribe(this._bitfinexSubscription);
+    if (this._candleSubscription) {
+      this._exchangeService.unsubscribe(this._candleSubscription);
     }
   }
 
   private drawChart( ) {
-    if (this._bitfinexSubscription) {
-      this._bitfinexService.unsubscribe( this._bitfinexSubscription );
+    if (this._candleSubscription) {
+      this._exchangeService.unsubscribe( this._candleSubscription );
     }
 
     // reset variables
@@ -88,22 +83,22 @@ export class ChartComponent implements OnInit, OnChanges, OnDestroy {
     this.chartDataVolume.datasets[0].label = 'volume';
 
     console.log( 'ChartComponent | ngOnChanges | Trying to subscribe to symbol: ' + this.symbol);
-    this._bitfinexSubscription = this._bitfinexService.getCandleListener( this.symbol, {timeframe: this.selectedTimeframe} );
+    this._candleSubscription = this._exchangeService.getCandles( this.symbol, {timeframe: this.selectedTimeframe} );
 
-    this._bitfinexSubscription.heartbeat.subscribe(
-      hb => console.log( 'ChartComponent | Channel \'' + hb.channel + '\' heartbeat @ ' + hb.timestamp )
+    this._candleSubscription.heartbeat.subscribe(
+      hb => console.log( 'ChartComponent | Channel \'' + hb.channelName + '\' heartbeat @ ' + hb.timestamp )
     );
 
-    this._bitfinexSubscription.listener.subscribe(
+    this._candleSubscription.listener.subscribe(
       next => {
-        let candleMessage: CandleMessage | CandleSnapshotMessage;
+        let candleMessage: ICandleMessage | ICandleSnapshotMessage;
 
-        if (next.isSnapshotMessage) {
-          candleMessage = next as CandleSnapshotMessage;
+        if (next.isSnapshot) {
+          candleMessage = next as ICandleSnapshotMessage;
 
           this._chartData = candleMessage.messages.sort( (d1, d2) => d1.timestamp.getTime( ) - d2.timestamp.getTime( ) ).slice( candleMessage.messages.length - 200);
         } else {
-          candleMessage = next as CandleMessage;
+          candleMessage = next as ICandleMessage;
           let timestamp = candleMessage.timestamp;
 
           let indexToReplace = this._chartData.findIndex( item => item.timestamp.getTime( ) === timestamp.getTime( ) );
@@ -191,6 +186,47 @@ export class ChartComponent implements OnInit, OnChanges, OnDestroy {
   timeframeChanged(event): void {
     this.selectedTimeframe = event;
     this.drawChart( );
+  }
+
+  private getChartOptions( ): any {
+    return {
+      title: { display: true },
+      legend: { display: false },
+      scales: {
+        yAxes: [{
+          display: true,
+          ticks: { display: true }
+        }],
+        xAxes: [{
+          display: true,
+          ticks: { display: true }
+        }]
+      },
+      elements: {
+        line: {
+          backgroundColor: 'rgba(0,0,0,0.1)',
+          borderColor: 'rgba(0,200,0,0.5)',
+          fill: true,
+        },
+        point: {
+          radius: 1,
+          hitRadius: 5,
+          hoverRadius: 10,
+          pointStyle: 'cross'
+        }
+      }
+    };
+  }
+
+  private getVolumeChartOptions( ): any {
+    return {
+      title: {
+        display: false,
+      },
+      legend: {
+        display: false
+      }
+    };
   }
 }
 

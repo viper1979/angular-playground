@@ -1,12 +1,12 @@
 import { Component, OnInit, OnChanges, OnDestroy, Input, SimpleChanges, ViewChild, ChangeDetectorRef } from '@angular/core';
 import { trigger, state, style, animate, transition } from '@angular/animations';
 import { AssetPair } from 'app/exchange-overview/exchange-overview.component';
-import { BitfinexService } from 'app/api/bitfinex/bitfinex.service';
-import { BitfinexChannelSubscription } from 'app/api/bitfinex/bitfinex-channels';
-import { TickerMessage, CandleMessage, CandleSnapshotMessage } from 'app/api/bitfinex/bitfinex-channel-messages';
+import { ExchangeService } from 'app/shared/exchange-handler/exchange.service';
 import { Router, ActivatedRoute } from '@angular/router';
 import { UIChart } from 'primeng/primeng';
 import { PrimeNgChartData } from 'app/chart/chart.component';
+import { IChannelSubscription } from 'app/shared/exchange-handler/interfaces/channel-subscription';
+import { ICandleMessage, ITickerMessage, ICandleSnapshotMessage } from 'app/shared/exchange-handler/interfaces/channel-messages';
 
 @Component({
   selector: 'app-exchange-asset-pair',
@@ -48,10 +48,10 @@ export class ExchangeAssetPairComponent implements OnInit, OnChanges, OnDestroy 
   @ViewChild('chart24h')
   chart: UIChart;
 
-  private _bitfinexChannelSubscription: BitfinexChannelSubscription;
-  private _bitfinexChartSubscription: BitfinexChannelSubscription;
+  private _tickerSubscription: IChannelSubscription;
+  private _chartSubscription: IChannelSubscription;
   // private _chartData: Map<string, CandleMessage>;
-  private _chartData: CandleMessage[];
+  private _chartData: ICandleMessage[];
 
   priceChangeState: string = 'equal';
   chartData: PrimeNgChartData;
@@ -59,7 +59,7 @@ export class ExchangeAssetPairComponent implements OnInit, OnChanges, OnDestroy 
   showChart: boolean = false;
 
   constructor(
-    private _bitfinexService: BitfinexService,
+    private _exchangeService: ExchangeService,
     private _changeDetector: ChangeDetectorRef,
     private _router: Router,
     private route: ActivatedRoute) {
@@ -71,19 +71,24 @@ export class ExchangeAssetPairComponent implements OnInit, OnChanges, OnDestroy 
 
     this.chartOptions = this.getChartOptions( );
 
-    this._bitfinexChannelSubscription = this._bitfinexService.getTickerListener( this.assetPair.symbol );
-    this._bitfinexChannelSubscription.listener.subscribe(
+    this._tickerSubscription = this._exchangeService.getTicker( this.assetPair.symbol );
+    this._tickerSubscription.listener.subscribe(
       next => {
-        let tickerMessage: TickerMessage = next as TickerMessage;
+        let tickerMessage: ITickerMessage = next as ITickerMessage;
 
         this.priceChangeState = 'equal';
 
         if (this.assetPair && this.assetPair.tickerMessage) {
           if (this.assetPair.tickerMessage.lastPrice < tickerMessage.lastPrice) {
-            this._changeDetector.detectChanges( );
+            // https://stackoverflow.com/questions/37849453/attempt-to-use-a-destroyed-view-detectchanges
+            if (!this._changeDetector['destroyed']) {
+              this._changeDetector.detectChanges();
+            }
             this.priceChangeState = 'higher';
           } else if (this.assetPair.tickerMessage.lastPrice > tickerMessage.lastPrice) {
-            this._changeDetector.detectChanges( );
+            if (!this._changeDetector['destroyed']) {
+              this._changeDetector.detectChanges();
+            }
             this.priceChangeState = 'lower';
           } else {
             this.priceChangeState = 'equal';
@@ -99,17 +104,17 @@ export class ExchangeAssetPairComponent implements OnInit, OnChanges, OnDestroy 
 
   ngOnChanges(changes: SimpleChanges) {
     if (this.primaryPair && this.finalSorting ) {
-      this._bitfinexChartSubscription = this._bitfinexService.getCandleListener( this.assetPair.symbol, {timeframe: '15m'} );
-      this._bitfinexChartSubscription.listener.subscribe(
+      this._chartSubscription = this._exchangeService.getCandles( this.assetPair.symbol, {timeframe: '15m'} );
+      this._chartSubscription.listener.subscribe(
         next => {
-          let candleMessage: CandleMessage | CandleSnapshotMessage;
+          let candleMessage: ICandleMessage | ICandleSnapshotMessage;
 
-          if (next.isSnapshotMessage) {
-            candleMessage = next as CandleSnapshotMessage;
+          if (next.isSnapshot) {
+            candleMessage = next as ICandleSnapshotMessage;
 
             this._chartData = candleMessage.messages.sort( (d1, d2) => d1.timestamp.getTime( ) - d2.timestamp.getTime( ) ).slice( candleMessage.messages.length - 96);
           } else {
-            candleMessage = next as CandleMessage;
+            candleMessage = next as ICandleMessage;
             let timestamp = candleMessage.timestamp;
 
             let indexToReplace = this._chartData.findIndex( item => item.timestamp.getTime( ) === timestamp.getTime( ) );
@@ -144,11 +149,14 @@ export class ExchangeAssetPairComponent implements OnInit, OnChanges, OnDestroy 
   }
 
   ngOnDestroy() {
-    if (this._bitfinexChannelSubscription) {
-      this._bitfinexService.unsubscribe(this._bitfinexChannelSubscription);
+    // when a change-detector is used, we need to detach it from the component when it is destroyed
+    this._changeDetector.detach( );
+
+    if (this._tickerSubscription) {
+      this._exchangeService.unsubscribe(this._tickerSubscription);
     }
-    if (this._bitfinexChartSubscription) {
-      this._bitfinexService.unsubscribe(this._bitfinexChartSubscription);
+    if (this._chartSubscription) {
+      this._exchangeService.unsubscribe(this._chartSubscription);
     }
   }
 

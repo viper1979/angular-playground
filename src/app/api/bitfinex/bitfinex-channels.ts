@@ -1,70 +1,70 @@
 import { BehaviorSubject, Observable } from 'rxjs/Rx';
-import { BitfinexChannelMessage, TradeMessage, TickerMessage, BookMessage, CandleMessage, CandleSnapshotMessage } from 'app/api/bitfinex/bitfinex-channel-messages';
+import { BitfinexTradeMessage, BitfinexTickerMessage, BitfinexOrderbookMessage, BitfinexCandleMessage, BitfinexCandleSnapshotMessage, BitfinexTradeSnapshotMessage } from 'app/api/bitfinex/bitfinex-channel-messages';
 import { EventEmitter } from '@angular/core';
+import { IChannel } from 'app/shared/exchange-handler/interfaces/channels';
+import { IChannelSubscription } from 'app/shared/exchange-handler/interfaces/channel-subscription';
+import { IChannelMessage, ICandleMessage, IOrderbookMessage, ITickerMessage, ITradeMessage, ICandleSnapshotMessage } from 'app/shared/exchange-handler/interfaces/channel-messages';
 
-export class BitfinexChannelSubscription {
-  protected readonly _channel: BitfinexChannel;
-  public heartbeat: EventEmitter<{channel: string, timestamp: Date}>;
+export class BitfinexChannelSubscription implements IChannelSubscription {
+  protected readonly _channel: IChannel;
+  public heartbeat: EventEmitter<{channelName: string, timestamp: Date}>;
 
-  get channelId(): number {
-    return this._channel.channelId;
+  get channelIdentifier(): number {
+    return this._channel.channelIdentifier;
   }
-  get channel(): string {
-    return this._channel.channel;
+  get channelName(): string {
+    return this._channel.channelName;
   }
 
-  public readonly pair: string;
-  public readonly listener: Observable<BitfinexChannelMessage>;
+  public readonly symbol: string;
+  public readonly listener: Observable<IChannelMessage>;
 
-  constructor( channel: BitfinexChannel, pair: string, listener: Observable<BitfinexChannelMessage> ) {
+  constructor( channel: IChannel, pair: string, listener: Observable<IChannelMessage> ) {
     this._channel = channel;
-    this.pair = pair;
+    this.symbol = pair;
     this.listener = listener;
 
-    this.heartbeat = new EventEmitter<{channel: string, timestamp: Date}>( );
+    this.heartbeat = new EventEmitter<{channelName: string, timestamp: Date}>( );
     this._channel.heartbeat.subscribe( event => {
       this.heartbeat.emit( event );
     })
   }
 }
 
-export abstract class BitfinexChannel {
-  public channelId: number;
-  public channel: string;
-  public heartbeat: EventEmitter<{channel: string, timestamp: Date}>;
-  protected subscription: BitfinexChannelSubscription;
+export abstract class BitfinexChannel implements IChannel {
+  public channelIdentifier: number;
+  public channelName: string;
+  public heartbeat: EventEmitter<{channelName: string, timestamp: Date}>;
+  protected subscription: IChannelSubscription;
 
   abstract getSubscribeMessage( options?: any ): string;
-  abstract getSubscription( ): BitfinexChannelSubscription;
+  abstract getSubscription( ): IChannelSubscription;
   abstract sendMessage( parsedMessage: any ): void;
 
   public sendHeartbeat( ): void {
-    this.heartbeat.emit({ channel: this.channel, timestamp: new Date() });
+    this.heartbeat.emit({ channelName: this.channelName, timestamp: new Date() });
   }
 
   public getUnsubscribeMessage( ): string {
     return JSON.stringify({
       'event': 'unsubscribe',
-      'chanId': this.channelId
+      'chanId': this.channelIdentifier
     });
   }
 
   constructor( ) {
-    this.heartbeat = new EventEmitter<{channel: string, timestamp: Date}>( );
+    this.heartbeat = new EventEmitter<{channelName: string, timestamp: Date}>( );
   }
 }
 
 export class BitfinexTradeChannel extends BitfinexChannel {
   public symbol: string;
   public pair: string;
-  private listener: BehaviorSubject<BitfinexChannelMessage>;
-  private isSubscribed: boolean;
+  private listener: BehaviorSubject<IChannelMessage>;
 
   constructor( ) {
     super();
-
-    this.isSubscribed = false;
-    this.listener = new BehaviorSubject<BitfinexChannelMessage>( null );
+    this.listener = new BehaviorSubject<IChannelMessage>( null );
   }
 
   public getSubscribeMessage( options?: any ): string {
@@ -75,7 +75,7 @@ export class BitfinexTradeChannel extends BitfinexChannel {
     });
   }
 
-  public getSubscription( ): BitfinexChannelSubscription {
+  public getSubscription( ): IChannelSubscription {
     let listener = this.listener.filter( item => item !== null );
     return new BitfinexChannelSubscription( this, this.pair, listener );
   }
@@ -83,21 +83,26 @@ export class BitfinexTradeChannel extends BitfinexChannel {
   public sendMessage( parsedMessage: any ): void {
     if (parsedMessage) {
       if (parsedMessage[1] instanceof Array) {
+        let snapshot = new BitfinexTradeSnapshotMessage( );
+        snapshot.channelIdentifier = parsedMessage[0];
+
         parsedMessage[1].forEach(element => {
-          let tradeMessage = new TradeMessage( );
-          tradeMessage.channelId = parsedMessage[0];
+          let tradeMessage = new BitfinexTradeMessage( );
+          tradeMessage.channelIdentifier = parsedMessage[0];
           tradeMessage.messageType = 'tu';
           tradeMessage.tradeId = element[0];
           tradeMessage.timestamp = new Date(element[1]);
           tradeMessage.amount = element[2];
           tradeMessage.orderPrice = element[3];
 
-          this.listener.next( tradeMessage );
+          snapshot.messages.push( tradeMessage );
         });
+
+        this.listener.next( snapshot );
       } else {
         if (parsedMessage[1] === 'tu') {
-          let tradeMessage = new TradeMessage( );
-          tradeMessage.channelId = parsedMessage[0];
+          let tradeMessage = new BitfinexTradeMessage( );
+          tradeMessage.channelIdentifier = parsedMessage[0];
           tradeMessage.messageType = parsedMessage[1];
           tradeMessage.tradeId = parsedMessage[2][0];
           tradeMessage.timestamp = new Date(parsedMessage[2][1]);
@@ -114,14 +119,14 @@ export class BitfinexTradeChannel extends BitfinexChannel {
 export class BitfinexTickerChannel extends BitfinexChannel {
   public symbol: string;
   public pair: string;
-  private listener: BehaviorSubject<BitfinexChannelMessage>;
+  private listener: BehaviorSubject<IChannelMessage>;
   private isSubscribed: boolean;
 
   constructor( ) {
     super();
 
     this.isSubscribed = false;
-    this.listener = new BehaviorSubject<BitfinexChannelMessage>( null );
+    this.listener = new BehaviorSubject<IChannelMessage>( null );
   }
 
   public getSubscribeMessage( options?: any ): string {
@@ -132,7 +137,7 @@ export class BitfinexTickerChannel extends BitfinexChannel {
     });
   }
 
-  public getSubscription( ): BitfinexChannelSubscription {
+  public getSubscription( ): IChannelSubscription {
     let listener = this.listener.filter( item => item !== null );
     return new BitfinexChannelSubscription( this, this.pair, listener );
   }
@@ -141,8 +146,8 @@ export class BitfinexTickerChannel extends BitfinexChannel {
     // console.log( 'TickerMessage | sendMessage | parsedMessage: ' + JSON.stringify(parsedMessage) );
 
     if (parsedMessage) {
-      let tickerMessage = new TickerMessage( );
-      tickerMessage.channelId = parsedMessage[0];
+      let tickerMessage = new BitfinexTickerMessage( );
+      tickerMessage.channelIdentifier = parsedMessage[0];
       tickerMessage.messageType = 'ticker';
       tickerMessage.bid = parsedMessage[1][0];
       tickerMessage.bidSize = parsedMessage[1][1];
@@ -163,14 +168,14 @@ export class BitfinexTickerChannel extends BitfinexChannel {
 export class BitfinexBooksChannel extends BitfinexChannel {
   public symbol: string;
   public pair: string;
-  private listener: BehaviorSubject<BitfinexChannelMessage>;
+  private listener: BehaviorSubject<IChannelMessage>;
   private isSubscribed: boolean;
 
   constructor( ) {
     super();
 
     this.isSubscribed = false;
-    this.listener = new BehaviorSubject<BitfinexChannelMessage>( null );
+    this.listener = new BehaviorSubject<IChannelMessage>( null );
   }
 
   public getSubscribeMessage( options?: any ): string {
@@ -198,7 +203,7 @@ export class BitfinexBooksChannel extends BitfinexChannel {
     return JSON.stringify(message);
   }
 
-  public getSubscription( ): BitfinexChannelSubscription {
+  public getSubscription( ): IChannelSubscription {
     let listener = this.listener.filter( item => item !== null );
     return new BitfinexChannelSubscription( this, this.symbol, listener );
   }
@@ -209,8 +214,8 @@ export class BitfinexBooksChannel extends BitfinexChannel {
     if (parsedMessage) {
       if (parsedMessage[1][0] instanceof Array) {
         parsedMessage[1].forEach(element => {
-          let bookMessage = new BookMessage( );
-          bookMessage.channelId = parsedMessage[0];
+          let bookMessage = new BitfinexOrderbookMessage( );
+          bookMessage.channelIdentifier = parsedMessage[0];
           bookMessage.price = element[0];
           bookMessage.count = element[1];
           bookMessage.amount = element[2];
@@ -219,8 +224,8 @@ export class BitfinexBooksChannel extends BitfinexChannel {
         });
       } else {
 
-        let bookMessage = new BookMessage( );
-        bookMessage.channelId = parsedMessage[0];
+        let bookMessage = new BitfinexOrderbookMessage( );
+        bookMessage.channelIdentifier = parsedMessage[0];
         bookMessage.price = parsedMessage[1][0];
         bookMessage.count = parsedMessage[1][1];
         bookMessage.amount = parsedMessage[1][2];
@@ -234,12 +239,12 @@ export class BitfinexBooksChannel extends BitfinexChannel {
 export class BitfinexCandleChannel extends BitfinexChannel {
   public symbol: string;
   public pair: string;
-  private listener: BehaviorSubject<BitfinexChannelMessage>;
+  private listener: BehaviorSubject<IChannelMessage>;
 
   constructor( ) {
     super();
 
-    this.listener = new BehaviorSubject<BitfinexChannelMessage>( null );
+    this.listener = new BehaviorSubject<IChannelMessage>( null );
   }
 
   public getSubscribeMessage( options?: any ): string {
@@ -252,7 +257,7 @@ export class BitfinexCandleChannel extends BitfinexChannel {
     return JSON.stringify(message);
   }
 
-  public getSubscription( ): BitfinexChannelSubscription {
+  public getSubscription( ): IChannelSubscription {
     let listener = this.listener.filter( item => item !== null );
     return new BitfinexChannelSubscription( this, this.symbol, listener );
   }
@@ -262,12 +267,12 @@ export class BitfinexCandleChannel extends BitfinexChannel {
 
     if (parsedMessage) {
       if (parsedMessage[1][0] instanceof Array) {
-        let snapshot: CandleSnapshotMessage = new CandleSnapshotMessage( );
-        snapshot.channelId = parsedMessage[0];
+        let snapshot: BitfinexCandleSnapshotMessage = new BitfinexCandleSnapshotMessage( );
+        snapshot.channelIdentifier = parsedMessage[0];
 
         parsedMessage[1].forEach(element => {
-          let candleMessage = new CandleMessage( );
-          candleMessage.channelId = parsedMessage[0];
+          let candleMessage = new BitfinexCandleMessage( );
+          candleMessage.channelIdentifier = parsedMessage[0];
           candleMessage.timestamp = new Date(element[0]);
           candleMessage.open = element[1];
           candleMessage.close = element[2];
@@ -282,8 +287,8 @@ export class BitfinexCandleChannel extends BitfinexChannel {
         this.listener.next( snapshot );
       } else {
 
-        let candleMessage = new CandleMessage( );
-        candleMessage.channelId = parsedMessage[0];
+        let candleMessage = new BitfinexCandleMessage( );
+        candleMessage.channelIdentifier = parsedMessage[0];
         candleMessage.timestamp = new Date(parsedMessage[1][0]);
         candleMessage.open = parsedMessage[1][1];
         candleMessage.close = parsedMessage[1][2];

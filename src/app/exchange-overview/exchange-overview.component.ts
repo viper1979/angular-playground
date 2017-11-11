@@ -1,7 +1,6 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
-import { BitfinexService } from 'app/api/bitfinex/bitfinex.service';
-import { TickerMessage } from 'app/api/bitfinex/bitfinex-channel-messages';
-import { BitfinexChannelSubscription } from 'app/api/bitfinex/bitfinex-channels';
+import { ExchangeService } from 'app/shared/exchange-handler/exchange.service';
+import { ITickerMessage } from 'app/shared/exchange-handler/interfaces/channel-messages';
 import { ArrayHelper } from 'app/shared/helper/array-helper';
 
 @Component({
@@ -14,7 +13,7 @@ export class ExchangeOverviewComponent implements OnInit, OnDestroy {
   private _sortedAssetPairs: Map<string, AssetPairs>;
   primaryAssets: string[];
 
-  constructor(private _bitfinexService: BitfinexService) {
+  constructor(private _exchangeService: ExchangeService) {
     this._assetPairs = new Map<string, AssetPair>( );
     this._sortedAssetPairs = new Map<string, AssetPairs>( );
     this.primaryAssets = [];
@@ -28,7 +27,7 @@ export class ExchangeOverviewComponent implements OnInit, OnDestroy {
   }
 
   private initAssetPairs( ): void {
-    let availableSymbols = this._bitfinexService.getAvailableSymbols( );
+    let availableSymbols = this._exchangeService.getAvailableSymbols( );
 
     availableSymbols.forEach( symbol => {
       let primaryCurrency = symbol.substring( 0, 3 );
@@ -95,7 +94,7 @@ export class AssetPairs {
 export class AssetPair {
   exchange: string;
   symbol: string;
-  tickerMessage: TickerMessage;
+  tickerMessage: ITickerMessage;
 
   constructor( ) { }
 }
