@@ -60,7 +60,7 @@ export class ExchangeAssetPairComponent implements OnInit, OnChanges, OnDestroy 
 
   constructor(
     private _exchangeService: ExchangeService,
-    // private _changeDetector: ChangeDetectorRef,
+    private _changeDetector: ChangeDetectorRef,
     private _router: Router,
     private route: ActivatedRoute) {
   }
@@ -80,10 +80,10 @@ export class ExchangeAssetPairComponent implements OnInit, OnChanges, OnDestroy 
 
         if (this.assetPair && this.assetPair.tickerMessage) {
           if (this.assetPair.tickerMessage.lastPrice < tickerMessage.lastPrice) {
-            // this._changeDetector.detectChanges( );
+            this._changeDetector.detectChanges( );
             this.priceChangeState = 'higher';
           } else if (this.assetPair.tickerMessage.lastPrice > tickerMessage.lastPrice) {
-            // this._changeDetector.detectChanges( );
+            this._changeDetector.detectChanges( );
             this.priceChangeState = 'lower';
           } else {
             this.priceChangeState = 'equal';
@@ -152,7 +152,7 @@ export class ExchangeAssetPairComponent implements OnInit, OnChanges, OnDestroy 
     }
 
     // when a change-detector is used, we need to detach it from the component when it is destroyed
-    // this._changeDetector.detach( );
+    this._changeDetector.detach( );
   }
 
   private getChartOptions( ): any {

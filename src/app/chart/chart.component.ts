@@ -24,6 +24,7 @@ export class ChartComponent implements OnInit, OnChanges, OnDestroy {
 
   chartData: PrimeNgChartData;
   chartDataVolume: PrimeNgChartData;
+  chartOptions: any;
   volumeChartOptions: any;
 
   selectedTimeframe: string = '1m';
@@ -38,14 +39,8 @@ export class ChartComponent implements OnInit, OnChanges, OnDestroy {
 
     this._chartData = [];
 
-    this.volumeChartOptions = {
-      title: {
-        display: false,
-      },
-      legend: {
-        display: false
-      }
-    };
+    this.chartOptions = this.getChartOptions( );
+    this.volumeChartOptions = this.getVolumeChartOptions( );
 
     this.availableTimeframes = [
       {label: 'one minute', value: '1m'},
@@ -191,6 +186,47 @@ export class ChartComponent implements OnInit, OnChanges, OnDestroy {
   timeframeChanged(event): void {
     this.selectedTimeframe = event;
     this.drawChart( );
+  }
+
+  private getChartOptions( ): any {
+    return {
+      title: { display: true },
+      legend: { display: false },
+      scales: {
+        yAxes: [{
+          display: true,
+          ticks: { display: true }
+        }],
+        xAxes: [{
+          display: true,
+          ticks: { display: true }
+        }]
+      },
+      elements: {
+        line: {
+          backgroundColor: 'rgba(0,0,0,0.1)',
+          borderColor: 'rgba(0,200,0,0.5)',
+          fill: true,
+        },
+        point: {
+          radius: 1,
+          hitRadius: 5,
+          hoverRadius: 10,
+          pointStyle: 'cross'
+        }
+      }
+    };
+  }
+
+  private getVolumeChartOptions( ): any {
+    return {
+      title: {
+        display: false,
+      },
+      legend: {
+        display: false
+      }
+    };
   }
 }
 

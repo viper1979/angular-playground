@@ -59,7 +59,7 @@ const appRoutes: Routes = [
   ],
   providers: [
     { provide: LOCALE_ID, useValue: 'de-DE' },
-    { provide: ExchangeService, useValue: new BitfinexService( ) }
+    { provide: ExchangeService, useClass: BitfinexService }
   ],
   bootstrap: [AppComponent]
 })
