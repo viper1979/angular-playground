@@ -1,7 +1,7 @@
 import { Component, Input, OnInit, OnChanges, OnDestroy, SimpleChanges } from '@angular/core';
 import { ExchangeService } from 'app/shared/exchange-handler/exchange.service';
 import { IChannelSubscription } from 'app/shared/exchange-handler/interfaces/channel-subscription';
-import { ITradeMessage, OrderType } from 'app/shared/exchange-handler/interfaces/channel-messages';
+import { ITradeMessage, OrderType, ITradeSnapshotMessage } from 'app/shared/exchange-handler/interfaces/channel-messages';
 import 'rxjs/Rx';
 
 @Component({
@@ -42,7 +42,15 @@ export class TradesComponent implements OnInit, OnChanges, OnDestroy {
 
       this._tradeSubscription.listener.subscribe(
         next => {
-          let tradeMessage: ITradeMessage = next as ITradeMessage;
+          let tradeMessage: ITradeMessage | ITradeSnapshotMessage;
+
+          if (next.isSnapshot) {
+            tradeMessage = next as ITradeSnapshotMessage;
+            this.lastTrades = tradeMessage.messages.sort( (t1, t2) => t2.timestamp.getTime( ) - t1.timestamp.getTime( ) ).slice( 0, 24 );
+            return;
+          }
+
+          tradeMessage = next as ITradeMessage;
 
           if (this.lastTrades.length > 24) {
             this.lastTrades.splice(-1, 1);

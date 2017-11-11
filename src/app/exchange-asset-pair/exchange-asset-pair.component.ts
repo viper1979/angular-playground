@@ -80,10 +80,15 @@ export class ExchangeAssetPairComponent implements OnInit, OnChanges, OnDestroy 
 
         if (this.assetPair && this.assetPair.tickerMessage) {
           if (this.assetPair.tickerMessage.lastPrice < tickerMessage.lastPrice) {
-            this._changeDetector.detectChanges( );
+            // https://stackoverflow.com/questions/37849453/attempt-to-use-a-destroyed-view-detectchanges
+            if (!this._changeDetector['destroyed']) {
+              this._changeDetector.detectChanges();
+            }
             this.priceChangeState = 'higher';
           } else if (this.assetPair.tickerMessage.lastPrice > tickerMessage.lastPrice) {
-            this._changeDetector.detectChanges( );
+            if (!this._changeDetector['destroyed']) {
+              this._changeDetector.detectChanges();
+            }
             this.priceChangeState = 'lower';
           } else {
             this.priceChangeState = 'equal';
@@ -144,15 +149,15 @@ export class ExchangeAssetPairComponent implements OnInit, OnChanges, OnDestroy 
   }
 
   ngOnDestroy() {
+    // when a change-detector is used, we need to detach it from the component when it is destroyed
+    this._changeDetector.detach( );
+
     if (this._tickerSubscription) {
       this._exchangeService.unsubscribe(this._tickerSubscription);
     }
     if (this._chartSubscription) {
       this._exchangeService.unsubscribe(this._chartSubscription);
     }
-
-    // when a change-detector is used, we need to detach it from the component when it is destroyed
-    this._changeDetector.detach( );
   }
 
   private getChartOptions( ): any {

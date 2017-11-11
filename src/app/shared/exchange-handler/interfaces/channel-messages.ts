@@ -14,6 +14,10 @@ export interface ITradeMessage extends IChannelMessage {
   amount: number;
 }
 
+export interface ITradeSnapshotMessage extends IChannelMessage {
+  messages: ITradeMessage[];
+}
+
 export enum OrderType {
   BuyOrder,
   SellOrder

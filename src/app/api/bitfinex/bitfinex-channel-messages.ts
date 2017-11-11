@@ -6,7 +6,8 @@ import {
   ICandleSnapshotMessage,
   OrderBookAction,
   IOrderbookMessage,
-  ITickerMessage
+  ITickerMessage,
+  ITradeSnapshotMessage
 } from 'app/shared/exchange-handler/interfaces/channel-messages';
 
 export class BitfinexChannelMessage implements IChannelMessage {
@@ -44,6 +45,16 @@ export class BitfinexTradeMessage extends BitfinexChannelMessage implements ITra
   }
 }
 
+export class BitfinexTradeSnapshotMessage extends BitfinexChannelMessage implements ITradeSnapshotMessage {
+  messages: BitfinexTradeMessage[];
+
+  constructor( ) {
+    super( );
+    this.messages = [];
+    this.isSnapshot = true;
+  }
+}
+
 export class BitfinexCandleMessage extends BitfinexChannelMessage implements ICandleMessage {
   timestamp: Date;
   open: number;
@@ -58,7 +69,7 @@ export class BitfinexCandleMessage extends BitfinexChannelMessage implements ICa
 }
 
 export class BitfinexCandleSnapshotMessage extends BitfinexChannelMessage implements ICandleSnapshotMessage {
-  messages: ICandleMessage[];
+  messages: BitfinexCandleMessage[];
 
   constructor () {
     super();

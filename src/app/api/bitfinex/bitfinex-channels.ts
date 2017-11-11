@@ -1,5 +1,5 @@
 import { BehaviorSubject, Observable } from 'rxjs/Rx';
-import { BitfinexTradeMessage, BitfinexTickerMessage, BitfinexOrderbookMessage, BitfinexCandleMessage, BitfinexCandleSnapshotMessage } from 'app/api/bitfinex/bitfinex-channel-messages';
+import { BitfinexTradeMessage, BitfinexTickerMessage, BitfinexOrderbookMessage, BitfinexCandleMessage, BitfinexCandleSnapshotMessage, BitfinexTradeSnapshotMessage } from 'app/api/bitfinex/bitfinex-channel-messages';
 import { EventEmitter } from '@angular/core';
 import { IChannel } from 'app/shared/exchange-handler/interfaces/channels';
 import { IChannelSubscription } from 'app/shared/exchange-handler/interfaces/channel-subscription';
@@ -83,6 +83,9 @@ export class BitfinexTradeChannel extends BitfinexChannel {
   public sendMessage( parsedMessage: any ): void {
     if (parsedMessage) {
       if (parsedMessage[1] instanceof Array) {
+        let snapshot = new BitfinexTradeSnapshotMessage( );
+        snapshot.channelIdentifier = parsedMessage[0];
+
         parsedMessage[1].forEach(element => {
           let tradeMessage = new BitfinexTradeMessage( );
           tradeMessage.channelIdentifier = parsedMessage[0];
@@ -92,8 +95,10 @@ export class BitfinexTradeChannel extends BitfinexChannel {
           tradeMessage.amount = element[2];
           tradeMessage.orderPrice = element[3];
 
-          this.listener.next( tradeMessage );
+          snapshot.messages.push( tradeMessage );
         });
+
+        this.listener.next( snapshot );
       } else {
         if (parsedMessage[1] === 'tu') {
           let tradeMessage = new BitfinexTradeMessage( );
