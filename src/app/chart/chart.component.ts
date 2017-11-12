@@ -120,6 +120,17 @@ export class ChartComponent implements OnInit, OnChanges, OnDestroy {
         this.chartDataVolume.labels = this._chartData.map( item => this.GetDisplayTimestamp( item.timestamp ) );
         this.chartDataVolume.datasets[0].data = this._chartData.map( item => item.volume );
         this.chartDataVolume.datasets[0].label = this.symbol;
+        this.chartDataVolume.datasets[0]['backgroundColor'] = this._chartData.map( (item, idx) => {
+          if (idx > 0) {
+            let previousValue = this._chartData[ idx - 1 ];
+            if (item.close < previousValue.close) {
+              return 'rgba(200,0,0,0.5)';
+            } else {
+              return 'rgba(0,200,0,0.5)';
+            }
+          }
+          return 'rgba(0,200,0,0.5)';
+        });
 
         this.chart.refresh( );
         this.volumeChart.refresh( );
@@ -204,7 +215,7 @@ export class ChartComponent implements OnInit, OnChanges, OnDestroy {
       },
       elements: {
         line: {
-          backgroundColor: 'rgba(0,0,0,0.1)',
+          backgroundColor: 'rgba(0,100,0,0.1)',
           borderColor: 'rgba(0,200,0,0.5)',
           fill: true,
         },

@@ -87,6 +87,10 @@
   background-color: rgb(220, 255, 220);
 }
 
+.table {
+  color: #000;
+  background-color: #fff;
+}
 
 .table>tbody>tr>td,
 .table>tbody>tr>th,

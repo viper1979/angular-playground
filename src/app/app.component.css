@@ -1,0 +1,20 @@
+.menu {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  align-items: center;
+  justify-content: flex-start;
+  align-content: flex-start;
+
+  font-family: droid sans mono, monospace;
+}
+
+.menu-item {
+  padding: 5px 10px;
+  flex-basis: 20%;
+}
+
+a {
+  color: #fff;
+  text-decoration: none;
+}

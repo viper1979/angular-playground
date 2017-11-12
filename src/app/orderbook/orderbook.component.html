@@ -1,7 +1,7 @@
 <div class="row" *ngIf="orientation === 'horizontal'">
   <div class="col-md-6">
 
-      <table class="table table-hover table-bordered table-sm">
+      <table class="table table-hover table-sm">
           <thead>
             <tr>
             <th>Bids</th>
@@ -21,7 +21,7 @@
   </div>
   <div class="col-md-6">
 
-      <table class="table table-hover table-bordered table-sm">
+      <table class="table table-hover table-sm">
           <thead>
             <tr>
               <th>Price</th>
@@ -41,10 +41,49 @@
   </div>
 </div>
 
-<div class="row" *ngIf="orientation === 'vertical'">
+<div class="vOrderBook" *ngIf="orientation === 'vertical'">
+
+  <div class="vOrderBookItem">
+    <div class="vOrderBookItemCell">Price</div>
+    <div class="vOrderBookItemCell text-right">Volume</div>
+    <div class="vOrderBookItemCell text-right">Amount</div>
+  </div>
+
+  <div class="vOrderBookItem" *ngFor="let ask of askBook">
+    <div class="vOrderBookItemCell ask">{{ask.price | number:'1.2-2'}}</div>
+    <div class="vOrderBookItemCell text-right">{{ask.amount | number:'1.4-4'}}</div>
+    <div class="vOrderBookItemCell text-right">{{ask.levelAmount | number:'1.2-2'}}</div>
+  </div>
+
+  <div class="vOrderBookItem" *ngIf="last">
+    <div style="width: 100%; text-align: center;">
+      <h4>
+          {{last.orderPrice | number:'1.2-2'}} {{symbol.substring(3).toUpperCase( )}}
+      </h4>
+    </div>
+  </div>
+
+
+    <!-- <div class="vOrderBookItemCell"><b>{{last.orderPrice | number:'1.2-2'}}</b></div>
+    <div class="vOrderBookItemCell text-right" [ngClass]="{ 'blur-out-expand-fwd': true }"><b>{{last.amount | number:'1.4-4'}}</b></div>
+    <div class="vOrderBookItemCell text-right"><b>{{last.orderType === 0 ? 'BUY' : 'SELL'}}</b></div>
+  </div> -->
+
+  <div class="vOrderBookItem" *ngFor="let bid of bidBook">
+    <div class="vOrderBookItemCell bid">{{bid.price | number:'1.2-2'}}</div>
+     <div class="vOrderBookItemCell text-right">{{bid.amount | number:'1.4-4'}}</div>
+    <div class="vOrderBookItemCell text-right">{{bid.levelAmount | number:'1.2-2'}}</div>
+  </div>
+
+</div>
+
+
+
+
+<!-- <div class="row" *ngIf="orientation === 'vertical'">
   <div class="col-md-11">
 
-    <table class="table table-hover table-bordered table-sm">
+    <table class="table table-hover table-sm">
       <thead>
         <tr>
         <th>Offers</th>
@@ -54,10 +93,8 @@
       </thead>
       <tbody>
         <tr *ngFor="let ask of askBook">
-          <!-- <td>{{ask.count}}</td> -->
           <td class="ask">{{ask.price | number:'1.2-2'}}</td>
           <td class="text-right">{{ask.amount | number:'1.4-4'}}</td>
-          <!-- <td>{{ask.price | number:'1.2-2'}}</td> -->
           <td class="text-right">{{ask.levelAmount | number:'1.2-2'}}</td>
         </tr>
 
@@ -68,14 +105,12 @@
         </tr>
 
         <tr *ngFor="let bid of bidBook">
-          <!-- <td>{{bid.count}}</td> -->
           <td class="bid">{{bid.price | number:'1.2-2'}}</td>
           <td class="text-right">{{bid.amount | number:'1.4-4'}}</td>
-          <!-- <td>{{bid.price | number:'1.2-2'}}</td> -->
           <td class="text-right">{{bid.levelAmount | number:'1.2-2'}}</td>
         </tr>
       </tbody>
     </table>
 
   </div>
-</div>
+</div> -->

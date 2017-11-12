@@ -15,6 +15,7 @@ import 'rxjs/Rx';
 export class AppComponent implements OnInit {
   title = 'app';
 
+  exchangeName: string;
   bitfinexSymbol: string = 'BTCUSD';
   filteredSymbols: string[] = [];
 
@@ -24,6 +25,7 @@ export class AppComponent implements OnInit {
   }
 
   ngOnInit( ) {
+    this.exchangeName = this._exchangeService.exchangeName;
     this.filteredSymbols = this._exchangeService.getAvailableSymbols();
   }
 

@@ -7,12 +7,31 @@
   padding: 2px;
 }
 
-/* .ask {
-  background-color: rgb(255, 235, 235);
+
+.vOrderBook {
+  display: flex;
+  flex-direction: column;
+  flex-wrap: nowrap;
 }
-.bid {
-  background-color: rgb(220, 255, 220);
-} */
+
+.vOrderBookItem {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+
+  font-size: 14px;
+}
+
+.vOrderBookItemCell {
+  flex-basis: 33%;
+}
+
+.text-right {
+  align-self: flex-end;
+}
+
+
+
 
 .ask {
   color: rgb(180, 34, 34);

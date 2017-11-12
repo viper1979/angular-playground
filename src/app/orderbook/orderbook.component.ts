@@ -15,6 +15,7 @@ export class OrderbookComponent implements OnInit, OnChanges, OnDestroy {
 
   private _askBook: Map<number, IOrderbookMessage>;
   private _bidBook: Map<number, IOrderbookMessage>;
+  private _itemsInOrderbook: number = 18;
 
   askBook: IOrderbookMessage[];
   bidBook: IOrderbookMessage[];
@@ -75,7 +76,7 @@ export class OrderbookComponent implements OnInit, OnChanges, OnDestroy {
               if (this.orientation === 'horizontal') {
                 this.askBook = tmpArray;
               } else {
-                this.askBook = tmpArray.slice( 0, 12 ).reverse( );
+                this.askBook = tmpArray.slice( 0, this._itemsInOrderbook ).reverse( );
               }
               return;
             }
@@ -86,7 +87,7 @@ export class OrderbookComponent implements OnInit, OnChanges, OnDestroy {
               if (this.orientation === 'horizontal') {
                 this.bidBook = tmpArray;
               } else {
-                this.bidBook = tmpArray.slice( tmpArray.length - 12 ).reverse( );
+                this.bidBook = tmpArray.slice( tmpArray.length - this._itemsInOrderbook ).reverse( );
               }
 
               let previousValue: number = 0;
@@ -113,7 +114,7 @@ export class OrderbookComponent implements OnInit, OnChanges, OnDestroy {
                 if (this.orientation === 'horizontal') {
                   this.askBook = tmpArray;
                 } else {
-                  this.askBook = tmpArray.slice( 0, 12 ).reverse( );
+                  this.askBook = tmpArray.slice( 0, this._itemsInOrderbook ).reverse( );
                 }
               }
               return;
@@ -126,7 +127,7 @@ export class OrderbookComponent implements OnInit, OnChanges, OnDestroy {
                 if (this.orientation === 'horizontal') {
                   this.bidBook = tmpArray;
                 } else {
-                  this.bidBook = tmpArray.slice( tmpArray.length - 12 ).reverse( );
+                  this.bidBook = tmpArray.slice( tmpArray.length - this._itemsInOrderbook ).reverse( );
                 }
 
                 let previousValue: number = 0;

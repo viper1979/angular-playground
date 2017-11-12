@@ -2,10 +2,27 @@
   display: flex;
   flex-direction: row;
   flex-wrap: wrap;
-  justify-content: flex-start;
-  align-items: flex-start;
+  align-content: stretch;
 }
 
 .flexItem {
   flex-basis: 19.95%;
 }
+
+/* @media (max-width: 1572px) {
+  .flexItem {
+    flex-basis: 20%;
+  }
+}
+
+@media (max-width: 1175px) {
+  .flexItem {
+    flex-basis: 25%;
+  }
+}
+
+@media (max-width: 900px) {
+  .flexItem {
+    flex-basis: 33%;
+  }
+} */

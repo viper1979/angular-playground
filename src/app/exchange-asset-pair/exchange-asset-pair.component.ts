@@ -178,8 +178,9 @@ export class ExchangeAssetPairComponent implements OnInit, OnChanges, OnDestroy 
       },
       elements: {
         line: {
-          backgroundColor: 'rgba(0,0,0,0.1)',
-          borderColor: 'rgba(0,200,0,0.5)',
+          backgroundColor: 'rgba(0,100,0,0.2)',
+          borderColor: 'rgba(0,200,0,1)',
+          borderWidth: 1,
           fill: true,
         },
         point: {
