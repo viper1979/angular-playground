@@ -3,6 +3,7 @@ import { ExchangeService } from 'app/shared/exchange-handler/exchange.service';
 import { UIChart } from 'primeng/primeng';
 import { ICandleMessage, ICandleSnapshotMessage } from 'app/shared/exchange-handler/interfaces/channel-messages';
 import { IChannelSubscription } from 'app/shared/exchange-handler/interfaces/channel-subscription';
+import { ActivatedRoute, Router } from '@angular/router';
 
 @Component({
   selector: 'app-chart',
@@ -30,10 +31,28 @@ export class ChartComponent implements OnInit, OnChanges, OnDestroy {
   selectedTimeframe: string = '1m';
   availableTimeframes: any[];
 
-  constructor(private _exchangeService: ExchangeService) {
+  constructor(
+    private _exchangeService: ExchangeService,
+    private _router: Router,
+    private _route: ActivatedRoute
+  ) {
   }
 
   ngOnInit() {
+    this._route.params.subscribe(
+      params => {
+        console.log( 'route parameter received: ' + JSON.stringify(params));
+        this.selectedTimeframe = params['timeframe'];
+      }
+    );
+    this._route.parent.params.subscribe(
+      params => {
+        console.log( 'route parameter for parent received: ' + JSON.stringify(params));
+        this.symbol = params['bitfinexSymbol'];
+        this.drawChart( );
+      }
+    );
+
     this.chartData = new PrimeNgChartData( );
     this.chartDataVolume = new PrimeNgChartData( );
 
@@ -196,7 +215,9 @@ export class ChartComponent implements OnInit, OnChanges, OnDestroy {
 
   timeframeChanged(event): void {
     this.selectedTimeframe = event;
-    this.drawChart( );
+    // this._router.navigate(['/', { timeframe: this.selectedTimeframe }], {relativeTo: this._route} );
+    this._router.navigate(['./', this.selectedTimeframe], {relativeTo: this._route});
+    // this.drawChart( );
   }
 
   private getChartOptions( ): any {
@@ -206,11 +227,11 @@ export class ChartComponent implements OnInit, OnChanges, OnDestroy {
       scales: {
         yAxes: [{
           display: true,
-          ticks: { display: true }
+          ticks: { display: true, fontFamily: 'monospace' }
         }],
         xAxes: [{
           display: true,
-          ticks: { display: true }
+          ticks: { display: true, fontFamily: 'monospace' }
         }]
       },
       elements: {
@@ -236,7 +257,17 @@ export class ChartComponent implements OnInit, OnChanges, OnDestroy {
       },
       legend: {
         display: false
-      }
+      },
+      scales: {
+        yAxes: [{
+          display: true,
+          ticks: { display: true, fontFamily: 'monospace' }
+        }],
+        xAxes: [{
+          display: true,
+          ticks: { display: true, fontFamily: 'monospace' }
+        }]
+      },
     };
   }
 }

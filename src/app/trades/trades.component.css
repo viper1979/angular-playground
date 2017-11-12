@@ -80,15 +80,17 @@
   }
 }
 
-.sell {
+/* ######################################################################### */
+
+/* .sell {
   background-color: rgb(255, 235, 235);
 }
 .buy {
   background-color: rgb(220, 255, 220);
-}
+} */
 
 .table {
-  color: #000;
+  color: rgb(36, 36, 36);
   background-color: #fff;
 }
 
@@ -100,3 +102,81 @@
 .table>thead>tr>th {
   padding: 2px;
 }
+
+/* ######################################################################### */
+
+.sell {
+  color: rgba(255, 0, 0, 0.8);
+}
+.buy {
+  color: rgba(0, 255, 0, 0.8);
+}
+
+.trades {
+  display: flex;
+  flex-direction: column;
+  flex-wrap: nowrap;
+
+  font-family: droid sans mono, monospace;
+  color: rgba(255, 255, 255, 0.8);
+
+  padding-right: 10px;
+  border-right: solid 1px rgb(88, 88, 88);
+}
+
+.trade-header {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+}
+
+.trade {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+
+  flex-basis: 1;
+}
+
+.trade-cell {
+  flex-basis: 25%;
+  align-self: center;
+}
+
+.text-right {
+  align-self: flex-end;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

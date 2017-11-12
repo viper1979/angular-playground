@@ -12,6 +12,8 @@
   display: flex;
   flex-direction: column;
   flex-wrap: nowrap;
+
+  font-family: droid sans mono, monospace;
 }
 
 .vOrderBookItem {

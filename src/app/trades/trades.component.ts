@@ -11,6 +11,7 @@ import 'rxjs/Rx';
 })
 export class TradesComponent implements OnInit, OnChanges, OnDestroy {
   private _tradeSubscription: IChannelSubscription;
+  private _tradesToDisplay: number = 37;
   orderType = OrderType;
 
   lastTrades: ITradeMessage[];
@@ -52,7 +53,7 @@ export class TradesComponent implements OnInit, OnChanges, OnDestroy {
 
           tradeMessage = next as ITradeMessage;
 
-          if (this.lastTrades.length > 24) {
+          if (this.lastTrades.length > this._tradesToDisplay) {
             this.lastTrades.splice(-1, 1);
           }
           this.lastTrades.splice(0, 0, tradeMessage);

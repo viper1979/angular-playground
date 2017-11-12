@@ -7,6 +7,8 @@
   align-content: flex-start;
 
   font-family: droid sans mono, monospace;
+  /* border-bottom: solid 1px #fff; */
+  border-bottom: 1px solid rgb(88, 88, 88);
 }
 
 .menu-item {

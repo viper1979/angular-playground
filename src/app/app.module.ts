@@ -26,8 +26,19 @@ import { CurrencySymbolPipe } from 'app/shared/pipes/currencySymbol.pipe';
 import { VolumePipe } from 'app/shared/pipes/volume.pipe';
 
 const appRoutes: Routes = [
-  { path: ':exchange/:bitfinexSymbol', component: ExchangeTradingViewComponent },
-  { path: '**', component: ExchangeOverviewComponent }
+  {
+    path: ':exchange/:bitfinexSymbol',
+    component: ExchangeTradingViewComponent,
+    children: [
+      {
+        path: ':timeframe', component: ChartComponent
+      }
+    ]
+  },
+  {
+    path: '**',
+    component: ExchangeOverviewComponent
+  }
 ];
 
 @NgModule({

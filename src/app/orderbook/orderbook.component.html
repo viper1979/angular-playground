@@ -56,10 +56,13 @@
   </div>
 
   <div class="vOrderBookItem" *ngIf="last">
-    <div style="width: 100%; text-align: center;">
+    <div style="width: 100%; text-align: center;" [ngClass]="{ 'blur-out-expand-fwd': true }">
       <h4>
           {{last.orderPrice | number:'1.2-2'}} {{symbol.substring(3).toUpperCase( )}}
       </h4>
+    </div>
+    <div>
+      {{last.orderType === 0 ? 'BUY' : 'SELL'}}
     </div>
   </div>
 

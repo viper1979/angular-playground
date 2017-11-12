@@ -1,9 +1,43 @@
+<div class="trades">
+  <div class="trade-header">
+    <!-- <div class="trade-header-tradeId">TradeId</div> -->
+    <div class="trade-cell trade-header-timestamp">Timestamp</div>
+    <div class="trade-cell trade-header-orderPrice text-right">Price</div>
+    <div class="trade-cell trade-header-orderVolume text-right">Volume</div>
+    <div class="trade-cell trade-header-amount text-right">Value</div>
+  </div>
+  <div class="trade" *ngFor="let trade of lastTrades">
+    <!-- <div class="trade-tradeId">{{trade.tradeId}}</div> -->
+    <div class="trade-cell trade-timestamp">
+      {{trade.timestamp | date:'HH:mm:ss'}}
+      <i class="fa fa-caret-square-o-up" aria-hidden="true" *ngIf="trade.orderType === orderType.BuyOrder"></i>
+      <i class="fa fa-caret-square-o-down" aria-hidden="true" *ngIf="trade.orderType === orderType.SellOrder"></i>
+    </div>
+    <div class="trade-cell trade-orderPrice text-right">
+      <span [ngClass]="{ 'sell': trade.orderType === orderType.SellOrder, 'buy': trade.orderType === orderType.BuyOrder, 'slide-in-bck-center': true }">
+        {{trade.orderPrice | number:'1.2-2'}}
+      </span>
+      <span [innerHTML]="symbol.substring(3) | currencySymbol"></span>
+    </div>
+    <div class="trade-cell trade-orderVolume text-right">
+      {{trade.amount | number:'1.4-4'}}
+      <span [innerHTML]="symbol.substring(0,3) | currencySymbol"></span>
+    </div>
+    <div class="trade-cell trade-value text-right" [ngClass]="{ 'blink-1': (trade.amount * trade.orderPrice) > 5000 }">
+      {{(trade.amount * trade.orderPrice) | number:'1.2-2'}}
+      <span [innerHTML]="symbol.substring(3) | currencySymbol"></span>
+    </div>
+  </div>
+</div>
 
 
-<table class="table table-hover table-bordered table-sm">
+
+
+
+
+<!-- <table class="table table-hover table-bordered table-sm">
   <thead>
     <tr>
-      <!-- <th>TradeId</th> -->
       <th>Timestamp</th>
       <th>OrderType</th>
       <th class="text-center">Price</th>
@@ -12,9 +46,7 @@
     </tr>
   </thead>
   <tbody>
-    <!-- <tr *ngFor="let trade of lastTrades" [ngClass]="{ 'danger': trade.orderType === 'SELL', 'success': trade.orderType === 'BUY', 'slide-in-bck-center': true }"> -->
     <tr *ngFor="let trade of lastTrades" [ngClass]="{ 'sell': trade.orderType === orderType.SellOrder, 'buy': trade.orderType === orderType.BuyOrder, 'slide-in-bck-center': true }">
-      <!-- <td>{{trade.tradeId}}</td> -->
       <td class="text-center">{{trade.timestamp | date:'HH:mm:ss'}}</td>
       <td>
         <i class="fa fa-caret-square-o-up" aria-hidden="true" *ngIf="trade.orderType === orderType.BuyOrder"></i>
@@ -37,4 +69,4 @@
       </td>
     </tr>
   </tbody>
-</table>
+</table> -->

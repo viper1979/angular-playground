@@ -1,17 +1,19 @@
 <div class="container-fluid">
   <div class="row" *ngIf="bitfinexSymbol">
 
-    <div class="col-md-3">
+    <div class="col-md-7">
       <app-ticker [symbol]="bitfinexSymbol">
       </app-ticker>
       <br>
-      <app-trades [symbol]="bitfinexSymbol">
-      </app-trades>
+      <router-outlet>
+      </router-outlet>
+      <!-- <app-chart [symbol]="bitfinexSymbol">
+      </app-chart> -->
     </div>
 
-    <div class="col-md-7">
-      <app-chart [symbol]="bitfinexSymbol">
-      </app-chart>
+    <div class="col-md-3">
+      <app-trades [symbol]="bitfinexSymbol">
+      </app-trades>
     </div>
 
     <div class="col-md-2">
