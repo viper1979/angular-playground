@@ -23,12 +23,14 @@ export class ChartComponent implements OnInit, OnChanges, OnDestroy {
   @Input()
   symbol: string;
 
+  @Input()
+  selectedTimeframe: string = '15m';
+
   chartData: PrimeNgChartData;
   chartDataVolume: PrimeNgChartData;
   chartOptions: any;
   volumeChartOptions: any;
 
-  selectedTimeframe: string = '1m';
   availableTimeframes: any[];
 
   constructor(
@@ -39,20 +41,6 @@ export class ChartComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   ngOnInit() {
-    this._route.params.subscribe(
-      params => {
-        console.log( 'route parameter received: ' + JSON.stringify(params));
-        this.selectedTimeframe = params['timeframe'];
-      }
-    );
-    this._route.parent.params.subscribe(
-      params => {
-        console.log( 'route parameter for parent received: ' + JSON.stringify(params));
-        this.symbol = params['bitfinexSymbol'];
-        this.drawChart( );
-      }
-    );
-
     this.chartData = new PrimeNgChartData( );
     this.chartDataVolume = new PrimeNgChartData( );
 
@@ -75,10 +63,29 @@ export class ChartComponent implements OnInit, OnChanges, OnDestroy {
       {label: 'two weeks', value: '14D'},
       {label: 'one month', value: '1M'}
     ];
+
+    this._route.params.subscribe(
+      params => {
+        console.log( 'route parameter received: ' + JSON.stringify(params));
+        this.selectedTimeframe = params['timeframe'];
+        this.drawChart( );
+      }
+    );
+    this._route.parent.params.subscribe(
+      params => {
+        console.log( 'route parameter for parent received: ' + JSON.stringify(params));
+        this.symbol = params['bitfinexSymbol'];
+        this.drawChart( );
+      }
+    );
   }
 
   ngOnChanges(changes: SimpleChanges) {
     if (changes.symbol.currentValue.length === 6) {
+      this.drawChart( );
+    }
+
+    if ( this.symbol || this.symbol.length >= 6 || this.availableTimeframes || this.availableTimeframes.findIndex( item => item.value === this.selectedTimeframe ) !== -1) {
       this.drawChart( );
     }
   }
@@ -94,6 +101,10 @@ export class ChartComponent implements OnInit, OnChanges, OnDestroy {
       this._exchangeService.unsubscribe( this._candleSubscription );
     }
 
+    if ( !this.symbol || this.symbol.length < 6 || !this.availableTimeframes || this.availableTimeframes.findIndex( item => item.value === this.selectedTimeframe ) === -1) {
+      return;
+    }
+
     // reset variables
     this._chartData = [];
     this.chartData = new PrimeNgChartData( );
@@ -101,11 +112,11 @@ export class ChartComponent implements OnInit, OnChanges, OnDestroy {
     this.chartData.datasets[0].label = this.symbol;
     this.chartDataVolume.datasets[0].label = 'volume';
 
-    console.log( 'ChartComponent | ngOnChanges | Trying to subscribe to symbol: ' + this.symbol);
+    console.log( 'ChartComponent | drawChart() | Trying to subscribe to symbol: ' + this.symbol + ' with timeframe: ' + this.selectedTimeframe);
     this._candleSubscription = this._exchangeService.getCandles( this.symbol, {timeframe: this.selectedTimeframe} );
 
     this._candleSubscription.heartbeat.subscribe(
-      hb => console.log( 'ChartComponent | Channel \'' + hb.channelName + '\' heartbeat @ ' + hb.timestamp )
+      hb => console.log( 'ChartComponent | drawChart() | Channel \'' + hb.channelName + '\' heartbeat @ ' + hb.timestamp )
     );
 
     this._candleSubscription.listener.subscribe(
@@ -156,8 +167,8 @@ export class ChartComponent implements OnInit, OnChanges, OnDestroy {
 
         // console.log( 'ChartComponent | ngOnChanges | message: ' + JSON.stringify(candleMessage) );
       },
-      error => console.log( 'ChartComponent | ngOnChanges | error: ' + JSON.stringify(error) ),
-      () => console.log( 'ChartComponent | ngOnChanges | completed' )
+      error => console.log( 'ChartComponent | drawChart() | error: ' + JSON.stringify(error) ),
+      () => console.log( 'ChartComponent | drawChart() | completed' )
     );
   }
 
@@ -216,7 +227,7 @@ export class ChartComponent implements OnInit, OnChanges, OnDestroy {
   timeframeChanged(event): void {
     this.selectedTimeframe = event;
     // this._router.navigate(['/', { timeframe: this.selectedTimeframe }], {relativeTo: this._route} );
-    this._router.navigate(['./', this.selectedTimeframe], {relativeTo: this._route});
+    this._router.navigate(['../', this.selectedTimeframe], {relativeTo: this._route});
     // this.drawChart( );
   }
 

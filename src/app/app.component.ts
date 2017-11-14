@@ -6,6 +6,7 @@ import { BehaviorSubject } from 'rxjs/BehaviorSubject';
 import { ExchangeService } from 'app/shared/exchange-handler/exchange.service';
 import { AutoCompleteModule } from 'primeng/primeng';
 import 'rxjs/Rx';
+import { AssetPairSearchService } from 'app/shared/services/asset-pair-search.service';
 
 @Component({
   selector: 'app-root',
@@ -18,10 +19,12 @@ export class AppComponent implements OnInit {
   exchangeName: string;
   bitfinexSymbol: string = 'BTCUSD';
   filteredSymbols: string[] = [];
+  assetPairFilter: string;
 
   constructor(
     private _http: Http,
-    private _exchangeService: ExchangeService) {
+    private _exchangeService: ExchangeService,
+    private _assetSearchService: AssetPairSearchService) {
   }
 
   ngOnInit( ) {
@@ -44,5 +47,12 @@ export class AppComponent implements OnInit {
 
   changeDisplaySymbol(event) {
     console.log('changeDisplaySymbol | symbol: ' + event);
+  }
+
+  searchAssets(event: any): void {
+    console.log('searchAssets( ) | event => ' + JSON.stringify(event));
+    if (this._assetSearchService) {
+      this._assetSearchService.triggerAssetSearch(event);
+    }
   }
 }

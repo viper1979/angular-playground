@@ -2,6 +2,10 @@
   font-family: droid sans mono, monospace;
 }
 
+.filtered {
+  opacity: 0.3;
+}
+
 /* .ranking-cell {
   padding: 10px 10px 5px;
 } */

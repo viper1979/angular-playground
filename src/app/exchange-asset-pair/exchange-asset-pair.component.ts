@@ -105,7 +105,7 @@ export class ExchangeAssetPairComponent implements OnInit, OnChanges, OnDestroy 
   }
 
   ngOnChanges(changes: SimpleChanges) {
-    if (this.primaryPair && this.finalSorting ) {
+    if (this.primaryPair && this.finalSorting && !this._chartSubscription ) {
       this._chartSubscription = this._exchangeService.getCandles( this.assetPair.symbol, {timeframe: '15m'} );
       this._chartSubscription.listener.subscribe(
         next => {

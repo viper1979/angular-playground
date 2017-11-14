@@ -1,5 +1,5 @@
 <!-- <div class="flexContainer"> -->
-<div class="monoFont">
+<div class="monoFont" [ngClass]="{ 'filtered': !visible }">
   <app-exchange-asset-pair [assetPair]="assetPair"
                            [primaryPair]="i===0?true:false"
                            [finalSorting]="assetPairs.finalSorting"

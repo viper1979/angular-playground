@@ -1,4 +1,5 @@
-<a [routerLink]="['/bitfinex', assetPair.symbol]">
+<!-- <a [routerLink]="['/bitfinex', assetPair.symbol]"> -->
+<a [routerLink]="'/bitfinex/' + assetPair.symbol + '/15m'">
   <div class="link-container">
     <div class="asset-pair-header" style="width: 100%;" *ngIf="primaryPair">
       <div class="asset-pair-header-firstSymbol">{{assetPair.symbol.substring(0,3)}}</div>

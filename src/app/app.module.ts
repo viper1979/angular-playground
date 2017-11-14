@@ -7,6 +7,7 @@ import { NgModule, LOCALE_ID } from '@angular/core';
 import { AutoCompleteModule, ChartModule } from 'primeng/primeng';
 
 // services
+import { AssetPairSearchService } from 'app/shared/services/asset-pair-search.service';
 import { BitfinexService } from 'app/api/bitfinex/bitfinex.service';
 import { ExchangeService } from 'app/shared/exchange-handler/exchange.service';
 
@@ -70,7 +71,8 @@ const appRoutes: Routes = [
   ],
   providers: [
     { provide: LOCALE_ID, useValue: 'de-DE' },
-    { provide: ExchangeService, useClass: BitfinexService }
+    { provide: ExchangeService, useClass: BitfinexService },
+    AssetPairSearchService
   ],
   bootstrap: [AppComponent]
 })

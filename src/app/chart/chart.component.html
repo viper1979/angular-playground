@@ -1,7 +1,7 @@
 <div class="row">
   <div class="col-md-12">
     <select class="dark-theme" name="timeframes" (change)="timeframeChanged($event.target.value)">
-      <option value="{{timeframe.value}}" *ngFor="let timeframe of availableTimeframes">{{timeframe.label}}</option>
+      <option value="{{timeframe.value}}" [selected]="selectedTimeframe === timeframe.value" *ngFor="let timeframe of availableTimeframes">{{timeframe.label}}</option>
     </select>
   </div>
 </div>

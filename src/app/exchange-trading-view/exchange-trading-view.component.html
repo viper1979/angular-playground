@@ -1,4 +1,43 @@
+<br>
 <div class="container-fluid">
+  <div class="row" *ngIf="bitfinexSymbol">
+
+    <div class="col-md-7">
+      <br><br>
+        <router-outlet>
+          </router-outlet>
+          <!-- <app-chart [symbol]="bitfinexSymbol">
+          </app-chart> -->
+    </div>
+
+    <div class="col-md-5">
+
+      <div class="col-md-7 col-md-offset-3">
+
+          <app-ticker [symbol]="bitfinexSymbol">
+            </app-ticker>
+            <br>
+      </div>
+
+        <div class="col-md-7">
+          <app-trades [symbol]="bitfinexSymbol">
+          </app-trades>
+        </div>
+
+        <div class="col-md-5">
+          <app-orderbook [symbol]="bitfinexSymbol" orientation="vertical">
+          </app-orderbook>
+        </div>
+
+
+    </div>
+
+  </div>
+</div>
+
+
+
+<!-- <div class="container-fluid">
   <div class="row" *ngIf="bitfinexSymbol">
 
     <div class="col-md-7">
@@ -6,10 +45,10 @@
       </app-ticker>
       <br>
       <router-outlet>
-      </router-outlet>
+      </router-outlet> -->
       <!-- <app-chart [symbol]="bitfinexSymbol">
       </app-chart> -->
-    </div>
+    <!-- </div>
 
     <div class="col-md-3">
       <app-trades [symbol]="bitfinexSymbol">
@@ -22,4 +61,4 @@
     </div>
 
   </div>
-</div>
+</div> -->
