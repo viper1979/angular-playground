@@ -120,8 +120,8 @@
   font-family: droid sans mono, monospace;
   color: rgba(255, 255, 255, 0.8);
 
-  padding-right: 10px;
-  border-right: solid 1px rgb(88, 88, 88);
+  /* padding-right: 10px;
+  border-right: solid 1px rgb(88, 88, 88); */
 }
 
 .trade-header {

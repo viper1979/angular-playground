@@ -187,6 +187,10 @@ export class ChartComponent implements OnInit, OnChanges, OnDestroy {
 
   private GetDisplayTimestamp( timestamp: Date ): string {
     let sTimestamp: string;
+    let day: number = timestamp.getDate() + 1;
+    let month: number = timestamp.getMonth() + 1;
+
+
 
     switch (this.selectedTimeframe) {
       case '1m':
@@ -195,30 +199,28 @@ export class ChartComponent implements OnInit, OnChanges, OnDestroy {
       case '30m': {
         let hours: number = timestamp.getHours( );
         let minutes: number = timestamp.getMinutes( );
-        sTimestamp = ( hours < 10 ? '0' : '' )  + hours + ':';
+        sTimestamp = hours + ':';
         sTimestamp += ( minutes < 10 ? '0' : '' ) + minutes;
         return sTimestamp;
       }
       case '1h':
       case '3h': {
         let hours: number = timestamp.getHours( );
-        let day: number = timestamp.getDate( );
-        sTimestamp = ( hours < 10 ? '0' : '' )  + hours + 'h ';
-        sTimestamp += timestamp.getDate( ) + '.' + timestamp.getMonth( );
+        sTimestamp = hours + 'h ';
+        sTimestamp += day + '.' + month;
         return sTimestamp;
       }
       case '6h':
       case '12h':
       case '1D': {
-        let day: number = timestamp.getDate( );
-        sTimestamp = timestamp.getDate( ) + '/' + timestamp.getMonth( ) + '/' + timestamp.getFullYear( );
+        sTimestamp = day + '/' + month + '/' + timestamp.getFullYear( );
         return sTimestamp;
       }
       case '7D':
       case '14D':
       case '1M':
       default: {
-        sTimestamp = timestamp.getMonth( ) + '/' + ( timestamp.getFullYear( ) );
+        sTimestamp = month + '/' + ( timestamp.getFullYear( ) );
         return sTimestamp;
       }
     }
