@@ -154,7 +154,7 @@ export class BitfinexTickerChannel extends BitfinexChannel {
       tickerMessage.ask = parsedMessage[1][2];
       tickerMessage.askSize = parsedMessage[1][3];
       tickerMessage.dailyChange = parsedMessage[1][4];
-      tickerMessage.dailyChangePercent = parsedMessage[1][5];
+      tickerMessage.dailyChangePercent = parsedMessage[1][5] * 100;
       tickerMessage.lastPrice = parsedMessage[1][6];
       tickerMessage.volume = parsedMessage[1][7];
       tickerMessage.high = parsedMessage[1][8];
