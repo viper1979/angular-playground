@@ -4,6 +4,7 @@
 
 .filtered {
   opacity: 0.3;
+  /* display: none; */
 }
 
 /* .ranking-cell {

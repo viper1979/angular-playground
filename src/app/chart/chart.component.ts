@@ -116,7 +116,7 @@ export class ChartComponent implements OnInit, OnChanges, OnDestroy {
     this._candleSubscription = this._exchangeService.getCandles( this.symbol, {timeframe: this.selectedTimeframe} );
 
     this._candleSubscription.heartbeat.subscribe(
-      hb => console.log( 'ChartComponent | drawChart() | Channel \'' + hb.channelName + '\' heartbeat @ ' + hb.timestamp )
+      hb => console.log( 'ChartComponent | Channel \'' + hb.channelName + '\' heartbeat @ ' + hb.timestamp )
     );
 
     this._candleSubscription.listener.subscribe(
