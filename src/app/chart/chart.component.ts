@@ -20,11 +20,25 @@ export class ChartComponent implements OnInit, OnChanges, OnDestroy {
   @ViewChild('volumechart')
   volumeChart: UIChart;
 
+  private _symbol: string;
   @Input()
-  symbol: string;
+  set symbol( value: string ) {
+    this._symbol = value;
+    this.drawChart( );
+  }
+  get symbol( ): string {
+    return this._symbol;
+  }
 
+  private _selectedTimeframe: string;
   @Input()
-  selectedTimeframe: string = '15m';
+  set selectedTimeframe( value: string ) {
+    this._selectedTimeframe = value;
+    this.drawChart( );
+  }
+  get selectedTimeframe( ): string {
+    return this._selectedTimeframe;
+  }
 
   chartData: PrimeNgChartData;
   chartDataVolume: PrimeNgChartData;
@@ -68,26 +82,21 @@ export class ChartComponent implements OnInit, OnChanges, OnDestroy {
       params => {
         console.log( 'route parameter received: ' + JSON.stringify(params));
         this.selectedTimeframe = params['timeframe'];
-        this.drawChart( );
+
       }
     );
     this._route.parent.params.subscribe(
       params => {
         console.log( 'route parameter for parent received: ' + JSON.stringify(params));
         this.symbol = params['bitfinexSymbol'];
-        this.drawChart( );
       }
     );
   }
 
   ngOnChanges(changes: SimpleChanges) {
-    if (changes.symbol.currentValue.length === 6) {
-      this.drawChart( );
-    }
-
-    if ( this.symbol || this.symbol.length >= 6 || this.availableTimeframes || this.availableTimeframes.findIndex( item => item.value === this.selectedTimeframe ) !== -1) {
-      this.drawChart( );
-    }
+    // if (changes.symbol.currentValue.length === 6) {
+    //   this.drawChart( );
+    // }
   }
 
   ngOnDestroy() {
@@ -97,23 +106,24 @@ export class ChartComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   private drawChart( ) {
-    if (this._candleSubscription) {
-      this._exchangeService.unsubscribe( this._candleSubscription );
+    if ( !this._symbol || this._symbol.length < 6 || !this.availableTimeframes || this.availableTimeframes.findIndex( item => item.value === this._selectedTimeframe ) === -1) {
+      console.log( 'properties not set to drawChart!');
+      return;
     }
 
-    if ( !this.symbol || this.symbol.length < 6 || !this.availableTimeframes || this.availableTimeframes.findIndex( item => item.value === this.selectedTimeframe ) === -1) {
-      return;
+    if (this._candleSubscription) {
+      this._exchangeService.unsubscribe( this._candleSubscription );
     }
 
     // reset variables
     this._chartData = [];
     this.chartData = new PrimeNgChartData( );
     this.chartDataVolume = new PrimeNgChartData( );
-    this.chartData.datasets[0].label = this.symbol;
+    this.chartData.datasets[0].label = this._symbol;
     this.chartDataVolume.datasets[0].label = 'volume';
 
-    console.log( 'ChartComponent | drawChart() | Trying to subscribe to symbol: ' + this.symbol + ' with timeframe: ' + this.selectedTimeframe);
-    this._candleSubscription = this._exchangeService.getCandles( this.symbol, {timeframe: this.selectedTimeframe} );
+    console.log( 'ChartComponent | drawChart() | Trying to subscribe to symbol: ' + this._symbol + ' with timeframe: ' + this.selectedTimeframe);
+    this._candleSubscription = this._exchangeService.getCandles( this._symbol, {timeframe: this.selectedTimeframe} );
 
     this._candleSubscription.heartbeat.subscribe(
       hb => console.log( 'ChartComponent | Channel \'' + hb.channelName + '\' heartbeat @ ' + hb.timestamp )
@@ -144,12 +154,12 @@ export class ChartComponent implements OnInit, OnChanges, OnDestroy {
         this.chartData.labels = [];
         this.chartData.labels = this._chartData.map( item => this.GetDisplayTimestamp( item.timestamp ) );
         this.chartData.datasets[0].data = this._chartData.map( item => item.close );
-        this.chartData.datasets[0].label = this.symbol;
+        this.chartData.datasets[0].label = this._symbol;
 
         this.chartDataVolume.labels = [];
         this.chartDataVolume.labels = this._chartData.map( item => this.GetDisplayTimestamp( item.timestamp ) );
         this.chartDataVolume.datasets[0].data = this._chartData.map( item => item.volume );
-        this.chartDataVolume.datasets[0].label = this.symbol;
+        this.chartDataVolume.datasets[0].label = this._symbol;
         this.chartDataVolume.datasets[0]['backgroundColor'] = this._chartData.map( (item, idx) => {
           if (idx > 0) {
             let previousValue = this._chartData[ idx - 1 ];

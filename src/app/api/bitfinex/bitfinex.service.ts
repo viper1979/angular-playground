@@ -135,7 +135,11 @@ export class BitfinexService extends ExchangeService {
     if (this._activeSubscriptions.has( subscription.channelIdentifier )) {
       let channel = this._activeSubscriptions.get( subscription.channelIdentifier );
 
+      // remove channel from active subscriptions
+      this._activeSubscriptions.delete(subscription.channelIdentifier);
+
       if (this._socketConnection && this._socketConnection.readyState === 1) {
+        // send channel unsubscribe message
         this._socketConnection.send( channel.getUnsubscribeMessage( ) );
         return true;
       }
@@ -261,10 +265,6 @@ export class BitfinexService extends ExchangeService {
 
   private unsubscribeReceived( parsedMessage: ITradeUnsubscribe ): void {
     console.log( '### UNSUBSCRIBED: ' + JSON.stringify(parsedMessage) );
-
-    if (this._activeSubscriptions.has(parsedMessage.chanId)) {
-      this._activeSubscriptions.delete(parsedMessage.chanId);
-    }
   }
 }
 
