@@ -34,8 +34,8 @@ export class BitfinexService extends ExchangeService {
     }
   }
 
-  getAvailableSymbols( ): string[] {
-    return this._availableSymbols;
+  getAvailableSymbols( ): Observable<string[]> {
+    return Observable.of( this._availableSymbols );
   }
 
   getTrades( symbol: string, options?: any ): IChannelSubscription {

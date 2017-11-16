@@ -27,37 +27,43 @@ export class ExchangeOverviewComponent implements OnInit, OnDestroy {
   }
 
   private initAssetPairs( ): void {
-    let availableSymbols = this._exchangeService.getAvailableSymbols( );
+    this._exchangeService.getAvailableSymbols( ).subscribe(
+      availableSymbols => {
+        availableSymbols.forEach( symbol => {
+          let primaryCurrency = symbol.substring( 0, 3 );
 
-    availableSymbols.forEach( symbol => {
-      let primaryCurrency = symbol.substring( 0, 3 );
+          if (ArrayHelper.contains( this.primaryAssets, primaryCurrency ) === false) {
+            this.primaryAssets.push( primaryCurrency );
+          }
+        });
 
-      if (ArrayHelper.contains( this.primaryAssets, primaryCurrency ) === false) {
-        this.primaryAssets.push( primaryCurrency );
+        /* DEBUG DEBUG DEBUG */
+        // this.primaryAssets = [];
+        // this.primaryAssets.push( 'BTC' );
+        /*********************/
+
+        // subscribe to each available symbol
+        for (let i = 0; i < availableSymbols.length; i++) {
+          let symbol = availableSymbols[ i ];
+
+          let assetPair = new AssetPair( );
+          assetPair.exchange = 'Bitfinex';
+          assetPair.symbol = symbol;
+
+          this._assetPairs.set( symbol, assetPair );
+        }
       }
-    });
-
-    /* DEBUG DEBUG DEBUG */
-    // this.primaryAssets = [];
-    // this.primaryAssets.push( 'BTC' );
-    /*********************/
-
-    // subscribe to each available symbol
-    for (let i = 0; i < availableSymbols.length; i++) {
-      let symbol = availableSymbols[ i ];
-
-      let assetPair = new AssetPair( );
-      assetPair.exchange = 'Bitfinex';
-      assetPair.symbol = symbol;
-
-      this._assetPairs.set( symbol, assetPair );
-    }
+    );
   }
 
   getAssetPairs( primaryCurrency: string ): AssetPairs {
     // check if we already have the sorted array in cache
     if (this._sortedAssetPairs.has(primaryCurrency)) {
       return this._sortedAssetPairs.get(primaryCurrency);
+    }
+
+    if (!this._assetPairs) {
+      return new AssetPairs( );
     }
 
     // get all symbols which starts with the given currency-key

@@ -18,6 +18,7 @@ export class AppComponent implements OnInit {
 
   exchangeName: string;
   bitfinexSymbol: string = 'BTCUSD';
+  symbols: string[] = [];
   filteredSymbols: string[] = [];
   assetPairFilter: string;
 
@@ -29,15 +30,18 @@ export class AppComponent implements OnInit {
 
   ngOnInit( ) {
     this.exchangeName = this._exchangeService.exchangeName;
-    this.filteredSymbols = this._exchangeService.getAvailableSymbols();
+    this.requestAvailableSymbols( );
+
+
+    // this.filteredSymbols = this._exchangeService.getAvailableSymbols();
   }
 
   filterSymbols(event) {
     if (!this.bitfinexSymbol || this.bitfinexSymbol.length === 0 ) {
-      this.filteredSymbols = this._exchangeService.getAvailableSymbols( );
+      this.requestAvailableSymbols( );
     }
 
-    this.filteredSymbols = this._exchangeService.getAvailableSymbols( ).filter( item => {
+    this.filteredSymbols = this.symbols.filter( item => {
       if (item.toUpperCase().indexOf( this.bitfinexSymbol.toUpperCase( ) ) >= 0 ) {
         return true;
       }
@@ -54,5 +58,11 @@ export class AppComponent implements OnInit {
     if (this._assetSearchService) {
       this._assetSearchService.triggerAssetSearch(event);
     }
+  }
+
+  private requestAvailableSymbols( ) {
+    this._exchangeService.getAvailableSymbols( ).subscribe(
+      symbols => this.symbols = symbols
+    );
   }
 }

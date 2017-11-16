@@ -1,3 +1,7 @@
+export interface ExportSymbol {
+  symbolIdentifier: string;
+}
+
 export interface IChannelMessage {
   channelIdentifier: any;
   messageType?: string;

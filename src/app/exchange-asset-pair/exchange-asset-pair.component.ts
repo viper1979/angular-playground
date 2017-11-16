@@ -47,8 +47,10 @@ export class ExchangeAssetPairComponent implements OnInit, OnChanges, OnDestroy 
   @Input( )
   finalSorting: boolean;
 
-  @ViewChild('chart24h')
-  chart: UIChart;
+  // @ViewChild('chart24h')
+  // chart: UIChart;
+
+  chart: any;
 
   private _tickerSubscription: IChannelSubscription;
   private _chartSubscription: IChannelSubscription;
@@ -105,6 +107,10 @@ export class ExchangeAssetPairComponent implements OnInit, OnChanges, OnDestroy 
   }
 
   ngOnChanges(changes: SimpleChanges) {
+    if (!this.chart) {
+      return;
+    }
+
     if (this.primaryPair && this.finalSorting && !this._chartSubscription ) {
       this._chartSubscription = this._exchangeService.getCandles( this.assetPair.symbol, {timeframe: '15m'} );
       this._chartSubscription.listener.subscribe(
