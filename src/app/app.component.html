@@ -5,7 +5,7 @@
   <div class="menu-item">
     Selected Exchange: {{exchangeName}}
   </div>
-  <div class="menu-item">
+  <div class="menu-item" *ngIf="symbols">
     Filter: <input type="text" [ngModel]="assetPairFilter" (keyup)="searchAssets($event.target.value)" placeholder="Search for asset-pair">
   </div>
 </div>

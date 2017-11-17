@@ -37,8 +37,8 @@ export class AppComponent implements OnInit {
   }
 
   filterSymbols(event) {
-    if (!this.bitfinexSymbol || this.bitfinexSymbol.length === 0 ) {
-      this.requestAvailableSymbols( );
+    if (!this.symbols || this.symbols.length === 0 ) {
+      return;
     }
 
     this.filteredSymbols = this.symbols.filter( item => {
