@@ -45,12 +45,7 @@ export abstract class GdaxChannel implements IChannel {
     this.heartbeat.emit({ channelName: this.channelName, timestamp: new Date() });
   }
 
-  public getUnsubscribeMessage( ): string {
-    return JSON.stringify({
-      'event': 'unsubscribe',
-      'chanId': this.channelIdentifier
-    });
-  }
+  abstract getUnsubscribeMessage( ): string;
 
   constructor( ) {
     this.heartbeat = new EventEmitter<{channelName: string, timestamp: Date}>( );
@@ -72,6 +67,12 @@ export class GdaxTradeChannel extends GdaxChannel {
       'event': 'subscribe',
       'channel': 'trades',
       'symbol': 't' + this.pair
+    });
+  }
+
+  public getUnsubscribeMessage( ): string {
+    return JSON.stringify({
+      'TODO': 'todo'
     });
   }
 
@@ -100,9 +101,25 @@ export class GdaxTickerChannel extends GdaxChannel {
 
   public getSubscribeMessage( options?: any ): string {
     return JSON.stringify({
-      'event': 'subscribe',
-      'channel': 'ticker',
-      'symbol': 't' + this.pair
+      'type': 'subscribe',
+      'product_ids': [
+        this.pair
+      ],
+      'channels': [
+        'ticker'
+      ]
+    });
+  }
+
+  public getUnsubscribeMessage( ): string {
+    return JSON.stringify({
+      'type': 'unsubscribe',
+      'product_ids': [
+        this.pair
+      ],
+      'channels': [
+        'ticker'
+      ]
     });
   }
 
@@ -154,6 +171,12 @@ export class GdaxBooksChannel extends GdaxChannel {
     return JSON.stringify(message);
   }
 
+  public getUnsubscribeMessage( ): string {
+    return JSON.stringify({
+      'TODO': 'todo'
+    });
+  }
+
   public getSubscription( ): IChannelSubscription {
     let listener = this.listener.filter( item => item !== null );
     return new GdaxChannelSubscription( this, this.symbol, listener );
@@ -182,6 +205,12 @@ export class GdaxCandleChannel extends GdaxChannel {
     };
 
     return JSON.stringify(message);
+  }
+
+  public getUnsubscribeMessage( ): string {
+    return JSON.stringify({
+      'TODO': 'todo'
+    });
   }
 
   public getSubscription( ): IChannelSubscription {

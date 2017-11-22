@@ -76,6 +76,7 @@ export class BitfinexService extends ExchangeService {
       channel = new BitfinexTickerChannel( );
       channel.pair = symbol;
       channel.symbol = 't' + symbol;
+
       this._queuedSubscriptions.set( 'ticker_' + channel.symbol, channel );
 
       if (this._socketConnection && this._socketConnection.readyState === 1 ) {

@@ -6,7 +6,8 @@ import { Http } from '@angular/http';
 import { Product } from 'app/api/gdax/models/product';
 import { forEach } from '@angular/router/src/utils/collection';
 import { Observable } from 'rxjs/Observable';
-import { GdaxTradeChannel, GdaxTickerChannel, GdaxBooksChannel, GdaxCandleChannel } from 'app/api/gdax/gdax-channels';
+import { GdaxTradeChannel, GdaxTickerChannel, GdaxBooksChannel, GdaxCandleChannel, GdaxChannel } from 'app/api/gdax/gdax-channels';
+import { parse } from 'querystring';
 
 @Injectable()
 export class GdaxService extends ExchangeService {
@@ -16,6 +17,9 @@ export class GdaxService extends ExchangeService {
   private _socketConnection: WebSocket;
   private _products: Product[];
 
+  private _activeSubscriptions: Map<string, GdaxChannel>;
+  private _queuedSubscriptions: Map<string, GdaxChannel>;
+
   constructor(private _http: Http) {
     super();
 
@@ -24,8 +28,8 @@ export class GdaxService extends ExchangeService {
     this._wssUrl = 'wss://ws-feed-public.sandbox.gdax.com'; // find out
     this._products = [];
 
-    // if (this.initGDax()) {
-    // }
+    if (this.initGDax()) {
+    }
 
     console.log( 'instance ready');
   }
@@ -65,9 +69,24 @@ export class GdaxService extends ExchangeService {
   getTicker( symbol: string, options?: any ): IChannelSubscription {
     console.log( 'GDax | getTicker: ');
 
-    let channel = new GdaxTickerChannel( );
-    channel.pair = symbol;
-    channel.symbol = 't' + symbol;
+    let tradeChannels = Array.from( this._activeSubscriptions.values( ) ).filter( item => (item as GdaxTickerChannel) !== undefined ) as GdaxTickerChannel[];
+    let channel = tradeChannels.find( item => item.symbol === symbol );
+
+    if (!channel && this._queuedSubscriptions.has( 'ticker_' + symbol)) {
+      channel = this._queuedSubscriptions.get( 'ticker_' + symbol) as GdaxTickerChannel;
+    }
+
+    if (!channel) {
+      channel = new GdaxTickerChannel( );
+      channel.pair = symbol;
+      channel.symbol = symbol;
+
+      this._queuedSubscriptions.set( 'ticker_' + channel.symbol, channel );
+
+      if (this._socketConnection && this._socketConnection.readyState === 1 ) {
+        this._socketConnection.send( channel.getSubscribeMessage( ) );
+      }
+    }
 
     return channel.getSubscription( );
   }
@@ -111,6 +130,54 @@ export class GdaxService extends ExchangeService {
 
   private onMessage(message: MessageEvent): any {
     console.log( 'GDax | onMessage: ' + JSON.stringify(message));
+
+    let parsedMessage = JSON.parse(message.data);
+    if (parsedMessage) {
+      if (parsedMessage.hasOwnProperty('type')) {
+        switch (parsedMessage.type) {
+          case 'error': {
+            console.log( '### ERROR: ' + JSON.stringify(parsedMessage) );
+            break;
+          }
+          case 'subscriptions': {
+            this.subscriptionReceived( parsedMessage );
+            break;
+          }
+          case 'heartbeat': {
+            this.onHeartbeatMessage( parsedMessage );
+            break;
+          }
+          case 'ticker': {
+            this.onTickerMessage( parsedMessage );
+            break;
+          }
+          case 'snapshot': {
+            this.onSnapshotMessage( parsedMessage );
+            break;
+          }
+          case 'l2update': {
+            this.onL2UpdateMessage( parsedMessage );
+            break;
+          }
+          case 'activate':
+          case 'margin_profile_update':
+          case 'change':
+          case 'match':
+          case 'done':
+          case 'open':
+          case 'received': {
+            console.log( '### KNOWN TYPE BUT NOT IMPLEMENTED: ' + JSON.stringify(parsedMessage));
+            break;
+          }
+          default: {
+            console.log( '### UNKNOWN MESSAGE TYPE: ' + JSON.stringify(parsedMessage) );
+            break;
+          }
+        }
+      } else {
+        console.log( '### MESSAGE RECEIVED WITH NO TYPE: ' + JSON.stringify(parsedMessage));
+      }
+    }
   }
 
   private onOpen(event: Event) {
@@ -123,5 +190,57 @@ export class GdaxService extends ExchangeService {
 
   private onError(event: Event): any {
     console.log( 'GDax | onError: ' + JSON.stringify(event));
+  }
+
+  /***/
+
+  private subscriptionReceived( parsedMessage: any ): void {
+    console.log( '### SUBSCRIPTIONS: ' + JSON.stringify(parsedMessage) );
+
+    // TODO: rework gdax subscription handling, because at the moment it is only a copy of the Bitfinex method
+
+    let pair = parsedMessage.pair;
+    let symbol = parsedMessage.symbol;
+    let key = parsedMessage['key'];
+    let channel = parsedMessage.channel;
+    let cacheKey: string;
+
+    if (this._queuedSubscriptions.has(channel + '_' + pair)) {
+      cacheKey = channel + '_' + pair;
+    }
+    if (this._queuedSubscriptions.has(channel + '_' + symbol)) {
+      cacheKey = channel + '_' + symbol;
+    }
+    if (this._queuedSubscriptions.has(channel + '_' + key)) {
+      cacheKey = channel + '_' + key;
+    }
+
+    if (cacheKey && cacheKey.length > 0) {
+      let gdaxChannel = this._queuedSubscriptions.get(cacheKey) as GdaxChannel;
+      gdaxChannel.channelName = parsedMessage.channel;
+      gdaxChannel.channelIdentifier = parsedMessage.chanId;
+
+      this._activeSubscriptions.set(gdaxChannel.channelName, gdaxChannel);
+      this._queuedSubscriptions.delete(cacheKey);
+    } else {
+      console.log('GDax | No queued subscription found for currency-pair: ' + pair);
+    }
+  }
+
+
+  private onHeartbeatMessage( parsedMessage: any ): void {
+    console.log( 'GDax | onHeartbeatMessage: ' + JSON.stringify(event));
+  }
+
+  private onTickerMessage( parsedMessage: any ): void {
+    console.log( 'GDax | onTickerMessage: ' + JSON.stringify(event));
+  }
+
+  private onSnapshotMessage( parsedMessage: any ): void {
+    console.log( 'GDax | onSnapshotMessage: ' + JSON.stringify(event));
+  }
+
+  private onL2UpdateMessage( parsedMessage: any ): void {
+    console.log( 'GDax | onL2UpdateMessage: ' + JSON.stringify(event));
   }
 }
