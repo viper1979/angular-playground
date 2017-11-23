@@ -4,6 +4,8 @@ import { IChannelMessage } from 'app/shared/exchange-handler/interfaces/channel-
 import { IChannelSubscription } from 'app/shared/exchange-handler/interfaces/channel-subscription';
 import { Observable } from 'rxjs/Observable';
 import { BehaviorSubject } from 'rxjs/BehaviorSubject';
+import { GdaxTickerMessage } from 'app/api/gdax/gdax-channel-messages';
+import { tick } from '@angular/core/testing';
 
 export class GdaxChannelSubscription implements IChannelSubscription {
   protected readonly _channel: IChannel;
@@ -32,7 +34,7 @@ export class GdaxChannelSubscription implements IChannelSubscription {
 }
 
 export abstract class GdaxChannel implements IChannel {
-  public channelIdentifier: number;
+  public channelIdentifier: any;
   public channelName: string;
   public heartbeat: EventEmitter<{channelName: string, timestamp: Date}>;
   protected subscription: IChannelSubscription;
@@ -100,6 +102,8 @@ export class GdaxTickerChannel extends GdaxChannel {
   }
 
   public getSubscribeMessage( options?: any ): string {
+    console.log( 'GdaxTickerChannel | getSubscribeMessage ');
+
     return JSON.stringify({
       'type': 'subscribe',
       'product_ids': [
@@ -129,7 +133,43 @@ export class GdaxTickerChannel extends GdaxChannel {
   }
 
   public sendMessage( parsedMessage: any ): void {
-    // console.log( 'TickerMessage | sendMessage | parsedMessage: ' + JSON.stringify(parsedMessage) );
+    console.log( 'TickerMessage | sendMessage | parsedMessage: ' + JSON.stringify(parsedMessage) );
+
+    if (parsedMessage) {
+      let tickerMessage = new GdaxTickerMessage( );
+      tickerMessage.channelIdentifier = parsedMessage.type + '_' + parsedMessage.product_id;
+      tickerMessage.messageType = 'ticker';
+      tickerMessage.lastPrice = parsedMessage.price;
+      tickerMessage.isSnapshot = false;
+      tickerMessage.volume = parsedMessage.volume_24h;
+      tickerMessage.low = parsedMessage.low_24h;
+      tickerMessage.high = parsedMessage.high_24h;
+      tickerMessage.bid = parsedMessage.best_bid;
+      tickerMessage.ask = parsedMessage.best_ask;
+
+      tickerMessage.dailyChange = ( tickerMessage.lastPrice - parsedMessage.open_24h );
+      tickerMessage.dailyChangePercent = ( ( tickerMessage.lastPrice - parsedMessage.open_24h ) / parsedMessage.open_24h ) * 100;
+
+      this.listener.next( tickerMessage );
+    }
+
+    // {
+    //   "type": "ticker",
+    //   "sequence": 733274106,
+    //   "product_id": "LTC-USD",
+    //   "price": "75.23000000",
+    //   "open_24h": "71.84000000",
+    //   "volume_24h": "734364.48052058",
+    //   "low_24h": "75.23000000",
+    //   "high_24h": "75.23000000",
+    //   "volume_30d": "13029496.25242951",
+    //   "best_bid": "75.23",
+    //   "best_ask": "75.24",
+    //   "side": "sell",
+    //   "time": "2017-11-23T22:23:17.854000Z",
+    //   "trade_id": 12013612,
+    //   "last_size": "5.77448200"
+    // }
   }
 }
 
