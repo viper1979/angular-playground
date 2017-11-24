@@ -30,7 +30,7 @@ export class ExchangeAssetPairsComponent implements OnInit {
 
   private applyFilter( ): void {
     this.visible = !this.assetPairs.pairs.every( item => {
-      return item.symbol.toLowerCase( ).indexOf( this._assetSearchFilter.toLowerCase( ) ) === -1
+      return item.exchangeSymbol.toLowerCase( ).indexOf( this._assetSearchFilter.toLowerCase( ) ) === -1
     });
   }
 

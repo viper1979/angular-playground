@@ -5,6 +5,8 @@ import { BitfinexChannel, BitfinexTradeChannel, BitfinexTickerChannel, BitfinexC
 import { ExchangeService } from 'app/shared/exchange-handler/exchange.service';
 import { IChannelSubscription } from 'app/shared/exchange-handler/interfaces/channel-subscription';
 import 'rxjs/Rx';
+import { BitfinexAssetPair } from 'app/api/bitfinex/models/bitfinex-asset-pair';
+import { IAssetPair } from 'app/shared/exchange-handler/interfaces/asset-pair';
 
 @Injectable()
 export class BitfinexService extends ExchangeService {
@@ -34,8 +36,13 @@ export class BitfinexService extends ExchangeService {
     }
   }
 
-  getAvailableSymbols( ): Observable<string[]> {
-    return Observable.of( this._availableSymbols );
+  getAvailableSymbols( ): Observable<IAssetPair[]> {
+    let assetPairs: IAssetPair[] = [];
+    this._availableSymbols.forEach( item => {
+      assetPairs.push( new BitfinexAssetPair( item ) );
+    });
+
+    return Observable.of( assetPairs );
   }
 
   getTrades( symbol: string, options?: any ): IChannelSubscription {

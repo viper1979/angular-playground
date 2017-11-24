@@ -8,6 +8,8 @@ import { forEach } from '@angular/router/src/utils/collection';
 import { Observable } from 'rxjs/Observable';
 import { GdaxTradeChannel, GdaxTickerChannel, GdaxBooksChannel, GdaxCandleChannel, GdaxChannel } from 'app/api/gdax/gdax-channels';
 import { parse } from 'querystring';
+import { IAssetPair } from 'app/shared/exchange-handler/interfaces/asset-pair';
+import { GdaxAssetPair } from 'app/api/gdax/models/gdax-asset-pair';
 
 @Injectable()
 export class GdaxService extends ExchangeService {
@@ -38,9 +40,9 @@ export class GdaxService extends ExchangeService {
 
   /***/
 
-  getAvailableSymbols( ): Observable<string[]> {
+  getAvailableSymbols( ): Observable<IAssetPair[]> {
     if (this._products && this._products.length > 0) {
-      return Observable.of( this._products.map( item => item.base_currency.toLowerCase( ) + item.quote_currency.toLowerCase( ) ));
+      return Observable.of( this._products.map( item => new GdaxAssetPair( item ) ) );
     }
 
     return this._http.get( this._apiUrl + '/products' )
@@ -55,7 +57,7 @@ export class GdaxService extends ExchangeService {
                 return products;
               } )
               // .map( products => products.map( item => item.base_currency.toLowerCase( ) + item.quote_currency.toLowerCase( ) ) );
-              .map( products => products.map( item => item.id ) );
+              .map( products => products.map( item => new GdaxAssetPair( item ) ) );
   }
 
   getTrades( symbol: string, options?: any ): IChannelSubscription {

@@ -1,9 +1,9 @@
 <!-- <a [routerLink]="['/bitfinex', assetPair.symbol]"> -->
-<a [routerLink]="'/bitfinex/' + assetPair.symbol + '/15m'">
+<a [routerLink]="'/bitfinex/' + assetPair.exchangeSymbol + '/15m'">
   <div class="link-container">
     <div class="asset-pair-header" style="width: 100%;" *ngIf="primaryPair">
-      <div class="asset-pair-header-firstSymbol">{{assetPair.symbol.substring(0,3)}}</div>
-      <div class="asset-pair-header-secondSymbol weak">{{assetPair.symbol.substring(3)}}</div>
+      <div class="asset-pair-header-firstSymbol">{{assetPair.fromCurrency.toUpperCase( )}}</div>
+      <div class="asset-pair-header-secondSymbol weak">{{assetPair.toCurrency.toUpperCase( )}}</div>
       <div class="asset-pair-header-price">{{assetPair.tickerMessage?.lastPrice | number:'1.2-2'}}</div>
       <div class="asset-pair-header-change" [ngClass]="assetPair.tickerMessage?.dailyChangePercent >= 0 ? 'positive' : 'negative'">
         {{assetPair.tickerMessage?.dailyChangePercent >= 0 ? '+' : ''}}{{assetPair.tickerMessage?.dailyChangePercent | number:'1.2-2'}}%
@@ -18,7 +18,7 @@
       <div class="asset-pair-exchange">{{assetPair.exchange}}</div>
       <div class="asset-pair-price" [@priceChangeState]="priceChangeState">
         <span class="weak">
-          {{assetPair.symbol.substring(3)}}
+          {{assetPair.toCurrency.toUpperCase( )}}
         </span>
         {{assetPair.tickerMessage?.lastPrice | number:'1.2-2'}}
       </div>

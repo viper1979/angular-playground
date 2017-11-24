@@ -7,6 +7,7 @@ import { ExchangeService } from 'app/shared/exchange-handler/exchange.service';
 import { AutoCompleteModule } from 'primeng/primeng';
 import 'rxjs/Rx';
 import { AssetPairSearchService } from 'app/shared/services/asset-pair-search.service';
+import { IAssetPair } from 'app/shared/exchange-handler/interfaces/asset-pair';
 
 @Component({
   selector: 'app-root',
@@ -18,8 +19,8 @@ export class AppComponent implements OnInit {
 
   exchangeName: string;
   bitfinexSymbol: string = 'BTCUSD';
-  symbols: string[] = [];
-  filteredSymbols: string[] = [];
+  symbols: IAssetPair[] = [];
+  filteredSymbols: IAssetPair[] = [];
   assetPairFilter: string;
 
   constructor(
@@ -42,7 +43,7 @@ export class AppComponent implements OnInit {
     }
 
     this.filteredSymbols = this.symbols.filter( item => {
-      if (item.toUpperCase().indexOf( this.bitfinexSymbol.toUpperCase( ) ) >= 0 ) {
+      if (item.exchangeSymbol.indexOf( this.bitfinexSymbol.toUpperCase( ) ) >= 0 ) {
         return true;
       }
       return false;

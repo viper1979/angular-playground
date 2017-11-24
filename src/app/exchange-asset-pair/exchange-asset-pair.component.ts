@@ -1,12 +1,12 @@
 import { Component, OnInit, OnChanges, OnDestroy, Input, SimpleChanges, ViewChild, ChangeDetectorRef } from '@angular/core';
 import { trigger, state, style, animate, transition } from '@angular/animations';
-import { AssetPair } from 'app/exchange-overview/exchange-overview.component';
 import { ExchangeService } from 'app/shared/exchange-handler/exchange.service';
 import { Router, ActivatedRoute } from '@angular/router';
 import { UIChart } from 'primeng/primeng';
 import { PrimeNgChartData } from 'app/chart/chart.component';
 import { IChannelSubscription } from 'app/shared/exchange-handler/interfaces/channel-subscription';
 import { ICandleMessage, ITickerMessage, ICandleSnapshotMessage } from 'app/shared/exchange-handler/interfaces/channel-messages';
+import { IAssetPair } from 'app/shared/exchange-handler/interfaces/asset-pair';
 
 @Component({
   selector: 'app-exchange-asset-pair',
@@ -39,7 +39,7 @@ import { ICandleMessage, ITickerMessage, ICandleSnapshotMessage } from 'app/shar
 })
 export class ExchangeAssetPairComponent implements OnInit, OnChanges, OnDestroy {
   @Input()
-  assetPair: AssetPair;
+  assetPair: IAssetPair;
 
   @Input( )
   primaryPair: boolean;
@@ -73,7 +73,7 @@ export class ExchangeAssetPairComponent implements OnInit, OnChanges, OnDestroy 
 
     this.chartOptions = this.getChartOptions( );
 
-    this._tickerSubscription = this._exchangeService.getTicker( this.assetPair.symbol );
+    this._tickerSubscription = this._exchangeService.getTicker( this.assetPair.exchangeSymbol );
     this._tickerSubscription.listener.subscribe(
       next => {
         let tickerMessage: ITickerMessage = next as ITickerMessage;
@@ -106,7 +106,7 @@ export class ExchangeAssetPairComponent implements OnInit, OnChanges, OnDestroy 
 
   ngOnChanges(changes: SimpleChanges) {
     if (this.primaryPair && this.finalSorting && !this._chartSubscription ) {
-      this._chartSubscription = this._exchangeService.getCandles( this.assetPair.symbol, {timeframe: '15m'} );
+      this._chartSubscription = this._exchangeService.getCandles( this.assetPair.exchangeSymbol, {timeframe: '15m'} );
       this._chartSubscription.listener.subscribe(
         next => {
           let candleMessage: ICandleMessage | ICandleSnapshotMessage;
@@ -137,13 +137,13 @@ export class ExchangeAssetPairComponent implements OnInit, OnChanges, OnDestroy 
           this.chartData.labels = [];
           this.chartData.labels = this._chartData.map( item => formatter( item.timestamp ) );
           this.chartData.datasets[0].data = this._chartData.map( item => item.close );
-          this.chartData.datasets[0].label = this.assetPair.symbol;
+          this.chartData.datasets[0].label = this.assetPair.displaySymbol;
 
           if (this.chart) {
             this.chart.refresh( );
           } else {
             // TODO: when primary pair changes we have an undefined chart!!
-            console.log( 'chart undefined for pair: ' + this.assetPair.symbol );
+            console.log( 'chart undefined for pair: ' + this.assetPair.displaySymbol );
           }
         }
       );

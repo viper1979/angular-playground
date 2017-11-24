@@ -72,8 +72,8 @@ const appRoutes: Routes = [
   ],
   providers: [
     { provide: LOCALE_ID, useValue: 'de-DE' },
-    // { provide: ExchangeService, useClass: BitfinexService },
-    { provide: ExchangeService, useClass: GdaxService },
+    { provide: ExchangeService, useClass: BitfinexService },
+    // { provide: ExchangeService, useClass: GdaxService },
     AssetPairSearchService
   ],
   bootstrap: [AppComponent]
