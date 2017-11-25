@@ -8,6 +8,7 @@ import { AutoCompleteModule } from 'primeng/primeng';
 import 'rxjs/Rx';
 import { AssetPairSearchService } from 'app/shared/services/asset-pair-search.service';
 import { IAssetPair } from 'app/shared/exchange-handler/interfaces/asset-pair';
+import { ApiRequestQueue, RequestItem } from 'app/shared/api-request-queue/api-request-queue';
 
 @Component({
   selector: 'app-root',
@@ -30,11 +31,21 @@ export class AppComponent implements OnInit {
   }
 
   ngOnInit( ) {
-    this.exchangeName = this._exchangeService.exchangeName;
-    this.requestAvailableSymbols( );
+    // /products/<product-id>/trades
+
+    let queue = new ApiRequestQueue( this._http );
+    for (let i = 0; i < 10; i++) {
+      queue.request( 'https://api-public.sandbox.gdax.com/products/BTC-GBP/trades', null );
+    }
 
 
-    // this.filteredSymbols = this._exchangeService.getAvailableSymbols();
+
+
+
+
+
+    // this.exchangeName = this._exchangeService.exchangeName;
+    // this.requestAvailableSymbols( );
   }
 
   filterSymbols(event) {
