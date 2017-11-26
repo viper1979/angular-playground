@@ -10,6 +10,7 @@ import { GdaxTradeChannel, GdaxTickerChannel, GdaxBooksChannel, GdaxCandleChanne
 import { parse } from 'querystring';
 import { IAssetPair } from 'app/shared/exchange-handler/interfaces/asset-pair';
 import { GdaxAssetPair } from 'app/api/gdax/models/gdax-asset-pair';
+import { ApiRequestQueue } from 'app/shared/api-request-queue/api-request-queue';
 
 @Injectable()
 export class GdaxService extends ExchangeService {
@@ -21,6 +22,7 @@ export class GdaxService extends ExchangeService {
 
   private _activeSubscriptions: Map<string, GdaxChannel>;
   private _queuedSubscriptions: Map<string, GdaxChannel>;
+  private _apiRequestQueue: ApiRequestQueue;
 
   constructor(private _http: Http) {
     super();
@@ -31,6 +33,14 @@ export class GdaxService extends ExchangeService {
     this._products = [];
     this._activeSubscriptions = new Map<string, GdaxChannel>( );
     this._queuedSubscriptions = new Map<string, GdaxChannel>( );
+
+    let apiQueueOptions = {
+      maxRequestPerSecond: 3,
+      hasBurstMode: true,
+      maxRequestPerSecondInBurstMode: 6
+    };
+
+    this._apiRequestQueue = new ApiRequestQueue( this._http, apiQueueOptions );
 
     if (this.initGDax()) {
     }
@@ -83,6 +93,11 @@ export class GdaxService extends ExchangeService {
       channel = new GdaxTickerChannel( );
       channel.pair = symbol;
       channel.symbol = symbol;
+
+      // create api request
+      let relativeApiUrl = `/products/${symbol}/ticker`;
+      let apiRequest = this._apiRequestQueue.request( this._apiUrl + relativeApiUrl );
+      channel.requestItem = apiRequest;
 
       console.log( 'adding symbol \'' + symbol + '\' to queued subscriptions');
       this._queuedSubscriptions.set( 'ticker_' + channel.symbol, channel );

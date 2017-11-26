@@ -5,14 +5,6 @@ import { CommonHelper } from 'app/shared/helper/common-helper';
 import { BehaviorSubject } from 'rxjs/BehaviorSubject';
 
 export class ApiRequestQueue {
-  private _apiUrl: string;
-  set apiUrl( value: string ) {
-    this._apiUrl = value;
-  }
-  get apiUrl( ): string {
-    return this._apiUrl;
-  }
-
   private _maxRequestsPerSecond: number;
   private _maxRequestsPerSecondInBurstMode: number;
   private _hasBurstMode: boolean;
@@ -22,23 +14,40 @@ export class ApiRequestQueue {
   private _queue: RequestItem[];
   private _http: Http;
 
-  constructor( http: Http ) {
+  constructor( http: Http, options?: { maxRequestPerSecond: number, hasBurstMode: boolean, maxRequestPerSecondInBurstMode: number } ) {
     this._http = http;
     this._queue = [];
+
+    // init default values
     this._maxRequestsPerSecond = 3;
     this._maxRequestsPerSecondInBurstMode = 6;
-    this._hasBurstMode = true;
+    this._hasBurstMode = false;
     this._burstModeEnabled = true;
+
+    if (options) {
+      if (options.hasOwnProperty( 'maxRequestPerSecond')) {
+        this._maxRequestsPerSecond = options.maxRequestPerSecond;
+      }
+      if (options.hasOwnProperty( 'hasBurstMode')) {
+        this._hasBurstMode = options.hasBurstMode;
+      }
+      if (options.hasOwnProperty( 'maxRequestPerSecondInBurstMode')) {
+        this._maxRequestsPerSecondInBurstMode = options.maxRequestPerSecondInBurstMode;
+      }
+    }
 
     if (!this._timerId) {
       this._timerId = window.setInterval(() => this.performRequests( ), 1000);
     }
   }
 
-  request( url: string, options?: any ): void { // Observable<Response>
+  request( url: string, options?: any ): RequestItem { // Observable<Response>
     let requestToQueue = new RequestItem( url, options );
+
     console.log( 'request queued: ' + requestToQueue.requestId )
     this._queue.push( requestToQueue );
+
+    return requestToQueue;
   }
 
   /***/
@@ -60,15 +69,13 @@ export class ApiRequestQueue {
 
       // perform a request for all queued requests in this request timeframe
       requestsToPerform.forEach( item => {
-        let responseItem = new ResponseItem( item );
-
         console.log( 'requesting \'' + item.requestId + '\'... ');
         this._http.get( item.requestUrl, item.options ).subscribe(
           response => {
             console.log( 'response \'' + item.requestId + '\' received' );
-            responseItem.result = response;
+            item.response.result = response;
           },
-          error => responseItem.result = 'error',
+          error => item.response.result = 'error',
           ( ) => console.log( 'request \'' + item.requestId + '\' completed' )
         );
       });
@@ -91,17 +98,19 @@ export class ApiRequestQueue {
 export class RequestItem {
   readonly requestId: string;
   readonly requestUrl: string;
-  options?: RequestOptionsArgs;
+  readonly options?: RequestOptionsArgs;
+  readonly response: ResponseItem;
 
   constructor( requestUrl: string, options?: RequestOptionsArgs ) {
     this.requestId = CommonHelper.generateUuid( );
     this.requestUrl = requestUrl;
     this.options = options;
+
+    this.response = new ResponseItem( );
   }
 }
 
 export class ResponseItem {
-  readonly requestItem: RequestItem;
   private readonly _listener: BehaviorSubject<any>;
 
   set result( value: any ) {
@@ -110,8 +119,7 @@ export class ResponseItem {
 
   resultAvailable: boolean;
 
-  constructor( request: RequestItem ) {
-    this.requestItem = request;
+  constructor( ) {
     this._listener = new BehaviorSubject<any>( null );
   }
 

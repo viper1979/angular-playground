@@ -76,3 +76,7 @@ export interface ITickerMessage extends IChannelMessage {
   high: number;
   low: number;
 }
+
+export interface ITickerSnapshotMessage extends IChannelMessage {
+  messages: ITickerMessage[];
+}

@@ -7,7 +7,8 @@ import {
   OrderBookAction,
   IOrderbookMessage,
   ITickerMessage,
-  ITradeSnapshotMessage
+  ITradeSnapshotMessage,
+  ITickerSnapshotMessage
 } from 'app/shared/exchange-handler/interfaces/channel-messages';
 
 export class GdaxChannelMessage {
@@ -34,5 +35,15 @@ export class GdaxTickerMessage extends GdaxChannelMessage implements ITickerMess
 
   constructor() {
     super();
+  }
+}
+
+export class GdaxTickerSnapshotMessage extends GdaxChannelMessage implements ITickerSnapshotMessage {
+  messages: GdaxTickerMessage[];
+
+  constructor () {
+    super();
+    this.messages = [];
+    this.isSnapshot = true;
   }
 }
