@@ -28,7 +28,7 @@ export class GdaxService extends ExchangeService {
     super();
 
     this.exchangeName = 'GDax';
-    this._apiUrl = 'https://api-public.sandbox.gdax.com'; // 'https://api.gdax.com';
+    this._apiUrl = 'https://api.gdax.com'; // 'https://api-public.sandbox.gdax.com'; // 'https://api.gdax.com';
     this._wssUrl = 'wss://ws-feed.gdax.com'; // 'wss://ws-feed-public.sandbox.gdax.com'; // 'wss://ws-feed.gdax.com'
     this._products = [];
     this._activeSubscriptions = new Map<string, GdaxChannel>( );
@@ -97,7 +97,7 @@ export class GdaxService extends ExchangeService {
       // create api request
       let relativeApiUrl = `/products/${symbol}/ticker`;
       let apiRequest = this._apiRequestQueue.request( this._apiUrl + relativeApiUrl );
-      channel.requestItem = apiRequest;
+      channel.requestItems.push( apiRequest );
 
       console.log( 'adding symbol \'' + symbol + '\' to queued subscriptions');
       this._queuedSubscriptions.set( 'ticker_' + channel.symbol, channel );

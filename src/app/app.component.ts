@@ -31,21 +31,13 @@ export class AppComponent implements OnInit {
   }
 
   ngOnInit( ) {
-    // /products/<product-id>/trades
+    // let queue = new ApiRequestQueue( this._http );
+    // for (let i = 0; i < 10; i++) {
+    //   queue.request( 'https://api-public.sandbox.gdax.com/products/BTC-GBP/trades', null );
+    // }
 
-    let queue = new ApiRequestQueue( this._http );
-    for (let i = 0; i < 10; i++) {
-      queue.request( 'https://api-public.sandbox.gdax.com/products/BTC-GBP/trades', null );
-    }
-
-
-
-
-
-
-
-    // this.exchangeName = this._exchangeService.exchangeName;
-    // this.requestAvailableSymbols( );
+    this.exchangeName = this._exchangeService.exchangeName;
+    this.requestAvailableSymbols( );
   }
 
   filterSymbols(event) {
