@@ -99,6 +99,9 @@ export class GdaxService extends ExchangeService {
       let apiRequest = this._apiRequestQueue.request( this._apiUrl + relativeApiUrl );
       channel.requestItems.push( apiRequest );
 
+      // request stats api method
+      // TODO:
+
       console.log( 'adding symbol \'' + symbol + '\' to queued subscriptions');
       this._queuedSubscriptions.set( 'ticker_' + channel.symbol, channel );
 
@@ -106,6 +109,8 @@ export class GdaxService extends ExchangeService {
         console.log( 'subscribing to channel ');
         this._socketConnection.send( channel.getSubscribeMessage( ) );
         console.log( 'finished subscribing... ');
+      } else {
+        console.log( '### WARNING: socket not ready' );
       }
     }
 
