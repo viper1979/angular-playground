@@ -5,10 +5,6 @@
   align-content: stretch;
 }
 
-/* .flexItem {
-  flex-basis: 19.95%;
-} */
-
 .flexItem {
   /* set min-width to 0 so that the chart-js will be shrinked as soon as the scroll-bar appears
   * without this setting the flex-item won't shrink past its content size */
@@ -17,24 +13,30 @@
 
 @media (min-width: 1572px) {
   .flexItem {
-     flex-basis: 20%;
+    flex-basis: 20%;
   }
 }
 
 @media (max-width: 1572px) and (min-width: 1175px) {
- .flexItem {
-   flex-basis: 25%;
- }
+  .flexItem {
+    flex-basis: 25%;
+  }
 }
 
 @media (max-width: 1175px) and (min-width: 900px) {
- .flexItem {
-   flex-basis: 33%;
- }
+  .flexItem {
+    flex-basis: 33%;
+  }
 }
 
-@media (max-width: 900px) {
- .flexItem {
-   flex-basis: 50%;
- }
+@media (max-width: 900px) and (min-width: 640px) {
+  .flexItem {
+    flex-basis: 50%;
+  }
+}
+
+@media (max-width: 640px) {
+  .flexItem {
+    flex-basis: 100%;
+  }
 }
