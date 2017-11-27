@@ -72,6 +72,14 @@ export class ApiRequestQueue {
         console.log( 'requesting \'' + item.requestId + '\'... ');
         this._http.get( item.requestUrl, item.options ).subscribe(
           response => {
+            // if we receive status-code 429 the rate limited is active
+            if (response.status === 429) {
+              console.log( '### RATE-LIMIT WARNING RECEIVED' );
+              this._burstModeEnabled = false;
+              this._queue.push( item );
+              return;
+            }
+
             console.log( 'response \'' + item.requestId + '\' received' );
             item.response.result = response;
           },
@@ -89,7 +97,7 @@ export class ApiRequestQueue {
       numberOfRequestsToPerform = this._maxRequestsPerSecondInBurstMode;
 
       // only allow burst mode as first request
-      this._burstModeEnabled = false;
+      // this._burstModeEnabled = false;
     }
     return numberOfRequestsToPerform;
   }

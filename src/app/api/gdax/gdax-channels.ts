@@ -93,14 +93,15 @@ export class GdaxTickerChannel extends GdaxChannel {
   public symbol: string;
   public pair: string;
   private listener: BehaviorSubject<IChannelMessage>;
-  public requestItems: RequestItem[];
   private isSubscribed: boolean;
+
+  public apiTicker: RequestItem;
+  public apiStats: RequestItem;
 
   constructor( ) {
     super();
 
     this.isSubscribed = false;
-    this.requestItems = [];
     this.listener = new BehaviorSubject<IChannelMessage>( null );
   }
 
@@ -133,20 +134,18 @@ export class GdaxTickerChannel extends GdaxChannel {
   public getSubscription( ): IChannelSubscription {
     let listener = this.listener.filter( item => item !== null );
 
-    if (this.requestItems) {
-      this.requestItems.forEach( requestItem => {
-        requestItem.response.getListener( ).subscribe(
-          response => {
-            let apiChannelMessage = {
-              requestId: requestItem.requestId,
-              source: 'REST_API',
-              data: response.json( )
-            };
+    if (this.apiStats && this.apiTicker) {
+      let combinedObservable = this.combineApiRequests( );
+      combinedObservable.subscribe(
+        response => {
+          let combinedApiRequestMessage = {
+            source: 'REST_API',
+            data: response as GdaxTickerMessage
+          };
 
-            this.sendMessage( apiChannelMessage );
-          }
-        ); // subscribe
-      }); // forEach
+          this.sendMessage( combinedApiRequestMessage );
+        }
+      );
     }
 
     return new GdaxChannelSubscription( this, this.pair, listener );
@@ -157,22 +156,7 @@ export class GdaxTickerChannel extends GdaxChannel {
 
     if (parsedMessage) {
       if (parsedMessage.source === 'REST_API') {
-        let tickerMessage = new GdaxTickerMessage( );
-        tickerMessage.channelIdentifier = 'ticker_' + this.symbol;
-        tickerMessage.messageType = 'ticker';
-
-        tickerMessage.lastPrice = parsedMessage.data.price;
-        tickerMessage.high = parsedMessage.data.price;
-        tickerMessage.low = parsedMessage.data.price;
-        tickerMessage.ask = parsedMessage.data.ask;
-        tickerMessage.askSize = parsedMessage.data.size;
-        tickerMessage.bid = parsedMessage.data.bid;
-        tickerMessage.bidSize = parsedMessage.data.size;
-        tickerMessage.volume = parsedMessage.data.volume;
-        tickerMessage.dailyChange = 250;
-        tickerMessage.dailyChangePercent = 12;
-
-        this.listener.next( tickerMessage );
+        this.listener.next( parsedMessage.data );
      } else {
         let tickerMessage = new GdaxTickerMessage( );
         tickerMessage.channelIdentifier = parsedMessage.type + '_' + parsedMessage.product_id;
@@ -191,31 +175,51 @@ export class GdaxTickerChannel extends GdaxChannel {
         this.listener.next( tickerMessage );
       }
     }
+  }
 
-    /***/
+  /***/
 
-    // if (parsedMessage) {
+  private combineApiRequests( ): Observable<any> {
+    let apiTickerObservable = this.apiTicker.response.getListener( ).map(
+      response => {
+        let apiChannelMessage = {
+          requestId: this.apiTicker.requestId,
+          data: response.json( )
+        };
 
-    //   if (parsedMessage instanceof Array) {
-    //     console.log( 'bla' );
-    //   } else {
-    //     let tickerMessage = new GdaxTickerMessage( );
-    //     tickerMessage.channelIdentifier = parsedMessage.type + '_' + parsedMessage.product_id;
-    //     tickerMessage.messageType = 'ticker';
-    //     tickerMessage.lastPrice = parsedMessage.price;
-    //     tickerMessage.isSnapshot = false;
-    //     tickerMessage.volume = parsedMessage.volume_24h;
-    //     tickerMessage.low = parsedMessage.low_24h;
-    //     tickerMessage.high = parsedMessage.high_24h;
-    //     tickerMessage.bid = parsedMessage.best_bid;
-    //     tickerMessage.ask = parsedMessage.best_ask;
+        return apiChannelMessage;
+      }
+    );
 
-    //     tickerMessage.dailyChange = ( tickerMessage.lastPrice - parsedMessage.open_24h );
-    //     tickerMessage.dailyChangePercent = ( ( tickerMessage.lastPrice - parsedMessage.open_24h ) / parsedMessage.open_24h ) * 100;
+    let apiStatsObservable = this.apiStats.response.getListener( ).map(
+      response => {
+        let apiChannelMessage = {
+          requestId: this.apiStats.requestId,
+          data: response.json( )
+        };
 
-    //     this.listener.next( tickerMessage );
-    //   }
-    // }
+        return apiChannelMessage;
+      }
+    )
+
+    return Observable.zip( apiTickerObservable, apiStatsObservable, (ticker, stats) => {
+      let tickerMessage = new GdaxTickerMessage( );
+      tickerMessage.channelIdentifier = 'ticker_' + this.symbol;
+      tickerMessage.messageType = 'ticker';
+
+      tickerMessage.lastPrice = ticker.data.price;
+      tickerMessage.high = stats.data.high;
+      tickerMessage.low = stats.data.low;
+      tickerMessage.ask = ticker.data.ask;
+      tickerMessage.askSize = ticker.data.size;
+      tickerMessage.bid = ticker.data.bid;
+      tickerMessage.bidSize = ticker.data.size;
+      tickerMessage.volume = stats.data.volume;
+      tickerMessage.dailyChange = ( tickerMessage.lastPrice - stats.data.open );
+      tickerMessage.dailyChangePercent = ( ( tickerMessage.lastPrice - stats.data.open ) / stats.data.open ) * 100;
+
+      return tickerMessage;
+    });
   }
 }
 

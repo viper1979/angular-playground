@@ -95,12 +95,16 @@ export class GdaxService extends ExchangeService {
       channel.symbol = symbol;
 
       // create api request
+      // let relativeApiUrl = `/products/${symbol}/ticker`;
+      // let apiRequest = this._apiRequestQueue.request( 'TICKER', this._apiUrl + relativeApiUrl );
+      // channel.requestItems.push( apiRequest );
+
       let relativeApiUrl = `/products/${symbol}/ticker`;
-      let apiRequest = this._apiRequestQueue.request( this._apiUrl + relativeApiUrl );
-      channel.requestItems.push( apiRequest );
+      channel.apiTicker = this._apiRequestQueue.request( this._apiUrl + relativeApiUrl );
 
       // request stats api method
-      // TODO:
+      relativeApiUrl = `/products/${symbol}/stats`;
+      channel.apiStats = this._apiRequestQueue.request( this._apiUrl + relativeApiUrl );
 
       console.log( 'adding symbol \'' + symbol + '\' to queued subscriptions');
       this._queuedSubscriptions.set( 'ticker_' + channel.symbol, channel );
