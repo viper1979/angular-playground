@@ -166,6 +166,7 @@ export class ExchangeAssetPairComponent implements OnInit, OnChanges, OnDestroy 
     return {
       title: { display: false },
       legend: { display: false },
+      maintainAspectRatio: false,
       scales: {
         yAxes: [{
           display: false,
