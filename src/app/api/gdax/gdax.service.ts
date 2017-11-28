@@ -147,6 +147,15 @@ export class GdaxService extends ExchangeService {
     channel.pair = symbol;
     channel.symbol = 't' + symbol;
 
+    // request stats api method
+    let start: string = new Date( new Date().setDate( new Date().getDate() - 1 ) ).toISOString( )
+    let end: string = new Date( Date.now( ) ).toISOString( );
+    let granularity: string = '900'; // 15m
+
+    let relativeApiUrl = `/products/${symbol}/candles?start=${start}&end=${end}&granularity=${granularity}`;
+    console.log( 'GDax | getCandles | relativeApiUrl: ' + relativeApiUrl );
+    channel.apiCandles = this._apiRequestQueue.request( this._apiUrl + relativeApiUrl );
+
     return channel.getSubscription( );
   }
 

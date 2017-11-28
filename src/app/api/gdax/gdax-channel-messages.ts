@@ -21,6 +21,8 @@ export class GdaxChannelMessage {
   }
 }
 
+/***/
+
 export class GdaxTickerMessage extends GdaxChannelMessage implements ITickerMessage {
   bid: number;
   bidSize: number;
@@ -40,6 +42,31 @@ export class GdaxTickerMessage extends GdaxChannelMessage implements ITickerMess
 
 export class GdaxTickerSnapshotMessage extends GdaxChannelMessage implements ITickerSnapshotMessage {
   messages: GdaxTickerMessage[];
+
+  constructor () {
+    super();
+    this.messages = [];
+    this.isSnapshot = true;
+  }
+}
+
+/***/
+
+export class GdaxCandleMessage extends GdaxChannelMessage implements ICandleMessage {
+  timestamp: Date;
+  open: number;
+  high: number;
+  low: number;
+  close: number;
+  volume: number;
+
+  constructor() {
+    super();
+  }
+}
+
+export class GdaxCandleSnapshotMessage extends GdaxChannelMessage implements ICandleSnapshotMessage {
+  messages: GdaxCandleMessage[];
 
   constructor () {
     super();

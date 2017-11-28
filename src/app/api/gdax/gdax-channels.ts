@@ -4,7 +4,7 @@ import { IChannelMessage } from 'app/shared/exchange-handler/interfaces/channel-
 import { IChannelSubscription } from 'app/shared/exchange-handler/interfaces/channel-subscription';
 import { Observable } from 'rxjs/Observable';
 import { BehaviorSubject } from 'rxjs/BehaviorSubject';
-import { GdaxTickerMessage, GdaxChannelMessage, GdaxTickerSnapshotMessage } from 'app/api/gdax/gdax-channel-messages';
+import { GdaxTickerMessage, GdaxChannelMessage, GdaxTickerSnapshotMessage, GdaxCandleSnapshotMessage, GdaxCandleMessage } from 'app/api/gdax/gdax-channel-messages';
 import { tick } from '@angular/core/testing';
 import { RequestItem } from 'app/shared/api-request-queue/api-request-queue';
 
@@ -281,6 +281,8 @@ export class GdaxCandleChannel extends GdaxChannel {
   public pair: string;
   private listener: BehaviorSubject<IChannelMessage>;
 
+  public apiCandles: RequestItem;
+
   constructor( ) {
     super();
 
@@ -305,9 +307,72 @@ export class GdaxCandleChannel extends GdaxChannel {
 
   public getSubscription( ): IChannelSubscription {
     let listener = this.listener.filter( item => item !== null );
+
+    if (this.apiCandles) {
+      this.mapCandles( ).subscribe(
+        response => {
+          let apiRequestMessage = {
+            source: 'REST_API',
+            data: response as GdaxCandleSnapshotMessage
+          };
+
+          this.sendMessage( apiRequestMessage );
+        }
+      );
+    }
+
     return new GdaxChannelSubscription( this, this.symbol, listener );
   }
 
   public sendMessage( parsedMessage: any ): void {
+    console.log( 'GdaxCandleChannel | sendMessage | parsedMessage: ' + JSON.stringify(parsedMessage) );
+
+    if (parsedMessage) {
+      if (parsedMessage.source === 'REST_API') {
+        this.listener.next( parsedMessage.data );
+      } else {
+        let candleMessage = new GdaxCandleMessage( );
+        // TODO:
+
+        this.listener.next( candleMessage );
+      }
+    }
+  }
+
+  /***/
+
+  private mapCandles( ): Observable<any> {
+    let apiCandlesObservable = this.apiCandles.response.getListener( ).map(
+      response => {
+        console.log( 'mapCandles | response received' );
+        let data = response.json( );
+
+        if (data) {
+          if (data instanceof Array) {
+            let snapshot = new GdaxCandleSnapshotMessage( );
+            snapshot.channelIdentifier = 'candles_' + this.symbol;
+
+            data.forEach( candle => {
+              let candleMessage = new GdaxCandleMessage( );
+              candleMessage.channelIdentifier = '';
+              candleMessage.timestamp = new Date(candle[0]);
+              candleMessage.open = candle[1];
+              candleMessage.close = candle[2];
+              candleMessage.high = candle[3];
+              candleMessage.low = candle[4];
+              candleMessage.volume = candle[5];
+
+              snapshot.messages.push( candleMessage );
+            });
+
+            return snapshot;
+          }
+        }
+
+        return new GdaxCandleSnapshotMessage( );
+      }
+    );
+
+    return apiCandlesObservable;
   }
 }
