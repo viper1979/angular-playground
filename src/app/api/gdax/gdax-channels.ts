@@ -39,6 +39,7 @@ export abstract class GdaxChannel implements IChannel {
   public channelName: string;
   public heartbeat: EventEmitter<{channelName: string, timestamp: Date}>;
   protected subscription: IChannelSubscription;
+  public isSubscribed: boolean;
 
   abstract getSubscribeMessage( options?: any ): string;
   abstract getSubscription( ): IChannelSubscription;
@@ -52,6 +53,7 @@ export abstract class GdaxChannel implements IChannel {
 
   constructor( ) {
     this.heartbeat = new EventEmitter<{channelName: string, timestamp: Date}>( );
+    this.isSubscribed = false;
   }
 }
 
@@ -93,7 +95,7 @@ export class GdaxTickerChannel extends GdaxChannel {
   public symbol: string;
   public pair: string;
   private listener: BehaviorSubject<IChannelMessage>;
-  private isSubscribed: boolean;
+  public isSubscribed: boolean;
 
   public apiTicker: RequestItem;
   public apiStats: RequestItem;
@@ -101,7 +103,6 @@ export class GdaxTickerChannel extends GdaxChannel {
   constructor( ) {
     super();
 
-    this.isSubscribed = false;
     this.listener = new BehaviorSubject<IChannelMessage>( null );
   }
 
@@ -227,7 +228,6 @@ export class GdaxBooksChannel extends GdaxChannel {
   public symbol: string;
   public pair: string;
   private listener: BehaviorSubject<IChannelMessage>;
-  private isSubscribed: boolean;
 
   constructor( ) {
     super();

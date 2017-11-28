@@ -23,6 +23,7 @@ export class GdaxService extends ExchangeService {
   private _activeSubscriptions: Map<string, GdaxChannel>;
   private _queuedSubscriptions: Map<string, GdaxChannel>;
   private _apiRequestQueue: ApiRequestQueue;
+  private _checkQueuedSubscriptionsTimerId: number;
 
   constructor(private _http: Http) {
     super();
@@ -44,6 +45,17 @@ export class GdaxService extends ExchangeService {
 
     if (this.initGDax()) {
     }
+
+    // TODO: test this emergency subscription timer !!!
+    this._checkQueuedSubscriptionsTimerId = window.setInterval( ( ) => {
+      if (this._socketConnection && this._socketConnection.readyState === 1) {
+        let notSubscribedRequests = Array.from( this._queuedSubscriptions.values( ) ).filter( item => item.isSubscribed === false );
+
+        notSubscribedRequests.forEach( channel => {
+          this._socketConnection.send( channel.getSubscribeMessage( ) );
+        });
+      }
+    }, 500);
 
     console.log( 'instance ready');
   }
@@ -94,11 +106,7 @@ export class GdaxService extends ExchangeService {
       channel.pair = symbol;
       channel.symbol = symbol;
 
-      // create api request
-      // let relativeApiUrl = `/products/${symbol}/ticker`;
-      // let apiRequest = this._apiRequestQueue.request( 'TICKER', this._apiUrl + relativeApiUrl );
-      // channel.requestItems.push( apiRequest );
-
+      // request ticker api method
       let relativeApiUrl = `/products/${symbol}/ticker`;
       channel.apiTicker = this._apiRequestQueue.request( this._apiUrl + relativeApiUrl );
 
@@ -112,6 +120,7 @@ export class GdaxService extends ExchangeService {
       if (this._socketConnection && this._socketConnection.readyState === 1 ) {
         console.log( 'subscribing to channel ');
         this._socketConnection.send( channel.getSubscribeMessage( ) );
+        channel.isSubscribed = true;
         console.log( 'finished subscribing... ');
       } else {
         console.log( '### WARNING: socket not ready' );
