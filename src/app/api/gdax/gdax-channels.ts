@@ -1,10 +1,10 @@
 import { EventEmitter } from '@angular/core';
 import { IChannel } from 'app/shared/exchange-handler/interfaces/channels';
-import { IChannelMessage } from 'app/shared/exchange-handler/interfaces/channel-messages';
+import { IChannelMessage, OrderType } from 'app/shared/exchange-handler/interfaces/channel-messages';
 import { IChannelSubscription } from 'app/shared/exchange-handler/interfaces/channel-subscription';
 import { Observable } from 'rxjs/Observable';
 import { BehaviorSubject } from 'rxjs/BehaviorSubject';
-import { GdaxTickerMessage, GdaxChannelMessage, GdaxTickerSnapshotMessage, GdaxCandleSnapshotMessage, GdaxCandleMessage } from 'app/api/gdax/gdax-channel-messages';
+import { GdaxTickerMessage, GdaxChannelMessage, GdaxTickerSnapshotMessage, GdaxCandleSnapshotMessage, GdaxCandleMessage, GdaxTradeMessage, GdaxTradeSnapshotMessage } from 'app/api/gdax/gdax-channel-messages';
 import { tick } from '@angular/core/testing';
 import { RequestItem } from 'app/shared/api-request-queue/api-request-queue';
 
@@ -57,44 +57,10 @@ export abstract class GdaxChannel implements IChannel {
   }
 }
 
-export class GdaxTradeChannel extends GdaxChannel {
-  public symbol: string;
-  public pair: string;
-  private listener: BehaviorSubject<IChannelMessage>;
-
-  constructor( ) {
-    super();
-    this.listener = new BehaviorSubject<IChannelMessage>( null );
-  }
-
-  public getSubscribeMessage( options?: any ): string {
-    return JSON.stringify({
-      'event': 'subscribe',
-      'channel': 'trades',
-      'symbol': 't' + this.pair
-    });
-  }
-
-  public getUnsubscribeMessage( ): string {
-    return JSON.stringify({
-      'TODO': 'todo'
-    });
-  }
-
-  public getSubscription( ): IChannelSubscription {
-    let listener = this.listener.filter( item => item !== null );
-    return new GdaxChannelSubscription( this, this.pair, listener );
-  }
-
-  public sendMessage( parsedMessage: any ): void {
-    // TODO:
-  }
-}
-
 export class GdaxTickerChannel extends GdaxChannel {
   public symbol: string;
   public pair: string;
-  private listener: BehaviorSubject<IChannelMessage>;
+  protected listener: BehaviorSubject<IChannelMessage>;
   public isSubscribed: boolean;
 
   public apiTicker: RequestItem;
@@ -153,7 +119,7 @@ export class GdaxTickerChannel extends GdaxChannel {
   }
 
   public sendMessage( parsedMessage: any ): void {
-    console.log( 'TickerMessage | sendMessage | parsedMessage: ' + JSON.stringify(parsedMessage) );
+    // console.log( 'TickerMessage | sendMessage | parsedMessage: ' + JSON.stringify(parsedMessage) );
 
     if (parsedMessage) {
       if (parsedMessage.source === 'REST_API') {
@@ -221,6 +187,78 @@ export class GdaxTickerChannel extends GdaxChannel {
 
       return tickerMessage;
     });
+  }
+}
+
+export class GdaxTradeChannel extends GdaxTickerChannel {
+  public apiTrades: RequestItem;
+
+  constructor( ) {
+    super();
+  }
+
+  public getSubscription( ): IChannelSubscription {
+    this.apiStats = null;
+    this.apiTicker = null;
+
+    let subscription = super.getSubscription( );
+
+    if (this.apiTrades) {
+      this.apiTrades.response.getListener( ).subscribe(
+        response => {
+          let apiChannelMessage = {
+            requestId: this.apiTrades.requestId,
+            source: 'REST_API',
+            data: response.json( )
+          };
+
+          this.sendMessage( apiChannelMessage );
+        }
+      );
+    }
+
+    return subscription;
+  }
+
+  public sendMessage( parsedMessage: any ): void {
+    console.log( 'GdaxTradeChannel | sendMessage | parsedMessage: ' + parsedMessage );
+
+    if (parsedMessage) {
+      if (parsedMessage.source === 'REST_API') {
+        if (parsedMessage.data instanceof Array) {
+          let tradeSnapshotMessage = new GdaxTradeSnapshotMessage( );
+          tradeSnapshotMessage.channelIdentifier = 'trade_' + this.symbol;
+
+          parsedMessage.data.forEach( trade => {
+            let tradeMessage = new GdaxTradeMessage( );
+            tradeMessage.channelIdentifier = 'trade_' + this.symbol;
+            tradeMessage.timestamp = new Date( Date.parse( trade.time ));
+            tradeMessage.tradeId = trade.trade_id;
+            tradeMessage.orderPrice = trade.price;
+            tradeMessage.amount = trade.size;
+            tradeMessage.orderType = trade.side === 'buy' ? OrderType.BuyOrder : OrderType.SellOrder;
+
+            tradeSnapshotMessage.messages.push( tradeMessage );
+          });
+
+          this.listener.next( tradeSnapshotMessage );
+        }
+      } else {
+        let tradeMessage = new GdaxTradeMessage( );
+
+        tradeMessage.channelIdentifier = parsedMessage.type + '_' + parsedMessage.product_id;
+        tradeMessage.messageType = 'ticker';
+        tradeMessage.isSnapshot = false;
+
+        tradeMessage.tradeId = parsedMessage.trade_id;
+        tradeMessage.timestamp = new Date( Date.parse( parsedMessage.time ) );
+        tradeMessage.orderType = parsedMessage.side === 'buy' ? OrderType.BuyOrder : OrderType.SellOrder;
+        tradeMessage.amount = parsedMessage.last_size;
+        tradeMessage.orderPrice = parsedMessage.price;
+
+        this.listener.next( tradeMessage );
+      }
+    }
   }
 }
 
@@ -325,7 +363,7 @@ export class GdaxCandleChannel extends GdaxChannel {
   }
 
   public sendMessage( parsedMessage: any ): void {
-    console.log( 'GdaxCandleChannel | sendMessage | parsedMessage: ' + JSON.stringify(parsedMessage) );
+    // console.log( 'GdaxCandleChannel | sendMessage | parsedMessage: ' + JSON.stringify(parsedMessage) );
 
     if (parsedMessage) {
       if (parsedMessage.source === 'REST_API') {
@@ -355,7 +393,7 @@ export class GdaxCandleChannel extends GdaxChannel {
             data.forEach( candle => {
               let candleMessage = new GdaxCandleMessage( );
               candleMessage.channelIdentifier = '';
-              candleMessage.timestamp = new Date(candle[0]);
+              candleMessage.timestamp = new Date(candle[0] * 1000);
               candleMessage.open = candle[1];
               candleMessage.close = candle[2];
               candleMessage.high = candle[3];

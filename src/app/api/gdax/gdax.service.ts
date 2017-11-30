@@ -23,7 +23,6 @@ export class GdaxService extends ExchangeService {
   private _activeSubscriptions: Map<string, GdaxChannel>;
   private _queuedSubscriptions: Map<string, GdaxChannel>;
   private _apiRequestQueue: ApiRequestQueue;
-  private _checkQueuedSubscriptionsTimerId: number;
 
   constructor(private _http: Http) {
     super();
@@ -45,17 +44,6 @@ export class GdaxService extends ExchangeService {
 
     if (this.initGDax()) {
     }
-
-    // TODO: test this emergency subscription timer !!!
-    this._checkQueuedSubscriptionsTimerId = window.setInterval( ( ) => {
-      if (this._socketConnection && this._socketConnection.readyState === 1) {
-        let notSubscribedRequests = Array.from( this._queuedSubscriptions.values( ) ).filter( item => item.isSubscribed === false );
-
-        notSubscribedRequests.forEach( channel => {
-          this._socketConnection.send( channel.getSubscribeMessage( ) );
-        });
-      }
-    }, 500);
 
     console.log( 'instance ready');
   }
@@ -84,9 +72,14 @@ export class GdaxService extends ExchangeService {
 
   getTrades( symbol: string, options?: any ): IChannelSubscription {
     console.log( 'GDax | getTrades: ');
+
     let channel = new GdaxTradeChannel();
     channel.pair = symbol;
-    channel.symbol = 't' + symbol;
+    channel.symbol = symbol;
+
+    // request trade api method
+    let relativeApiUrl = `/products/${symbol}/trades`
+    channel.apiTrades = this._apiRequestQueue.request( this._apiUrl + relativeApiUrl );
 
     return channel.getSubscription( );
   }
@@ -94,8 +87,8 @@ export class GdaxService extends ExchangeService {
   getTicker( symbol: string, options?: any ): IChannelSubscription {
     console.log( 'GDax | getTicker: symbol = ' + symbol);
 
-    let tradeChannels = Array.from( this._activeSubscriptions.values( ) ).filter( item => (item as GdaxTickerChannel) !== undefined ) as GdaxTickerChannel[];
-    let channel = tradeChannels.find( item => item.symbol === symbol );
+    let tickerChannels = Array.from( this._activeSubscriptions.values( ) ).filter( item => (item as GdaxTickerChannel) !== undefined ) as GdaxTickerChannel[];
+    let channel = tickerChannels.find( item => item.symbol === symbol );
 
     if (!channel && this._queuedSubscriptions.has( 'ticker_' + symbol)) {
       channel = this._queuedSubscriptions.get( 'ticker_' + symbol) as GdaxTickerChannel;
@@ -177,7 +170,7 @@ export class GdaxService extends ExchangeService {
   }
 
   private onMessage(message: MessageEvent): any {
-    console.log( 'GDax | onMessage: ' + JSON.stringify(message));
+    // console.log( 'GDax | onMessage: ' + JSON.stringify(message));
 
     let parsedMessage = JSON.parse(message.data);
 
@@ -231,6 +224,16 @@ export class GdaxService extends ExchangeService {
 
   private onOpen(event: Event) {
     console.log( 'GDax | onOpen: ' + JSON.stringify(event));
+
+    // make sure every queued subscription will be send to the socket, even when the socket is available a litte bit late
+    if (this._socketConnection && this._socketConnection.readyState === 1) {
+      let notSubscribedRequests = Array.from( this._queuedSubscriptions.values( ) ).filter( item => item.isSubscribed === false );
+
+      notSubscribedRequests.forEach( channel => {
+        this._socketConnection.send( channel.getSubscribeMessage( ) );
+        channel.isSubscribed = true;
+      });
+    }
   }
 
   private onClose(event: CloseEvent): any {
@@ -277,12 +280,17 @@ export class GdaxService extends ExchangeService {
   }
 
   private onTickerMessage( parsedMessage: any ): void {
-    console.log( 'GDax | onTickerMessage: ' + JSON.stringify(parsedMessage));
+    // console.log( 'GDax | onTickerMessage: ' + JSON.stringify(parsedMessage));
 
     let channelIdentifier = parsedMessage.type + '_' + parsedMessage.product_id;
     if (this._activeSubscriptions.has(channelIdentifier)) {
       this._activeSubscriptions.get(channelIdentifier).sendMessage( parsedMessage );
     }
+
+    // let tradeChannelIdentifier = 'trades_' + parsedMessage.product_id;
+    // if (this._activeSubscriptions.has(tradeChannelIdentifier)) {
+    //   this._activeSubscriptions.get(channelIdentifier).sendMessage( parsedMessage );
+    // }
   }
 
   private onSnapshotMessage( parsedMessage: any ): void {

@@ -29,7 +29,7 @@ export class TradesComponent implements OnInit, OnChanges, OnDestroy {
   ngOnChanges(changes: SimpleChanges) {
     console.log('TradesComponent | ngOnChanges | changes: ' + JSON.stringify(changes) );
 
-    if (changes.symbol.currentValue.length === 6) {
+    if (changes.symbol.currentValue.length >= 6) {
       if (this._tradeSubscription) {
         this._exchangeService.unsubscribe( this._tradeSubscription );
       }

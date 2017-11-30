@@ -74,3 +74,27 @@ export class GdaxCandleSnapshotMessage extends GdaxChannelMessage implements ICa
     this.isSnapshot = true;
   }
 }
+
+/***/
+
+export class GdaxTradeMessage extends GdaxChannelMessage implements ITradeMessage {
+  tradeId: number;
+  timestamp: Date;
+  amount: number;
+  orderType: OrderType;
+  orderPrice: number;
+
+  constructor( ) {
+    super();
+  }
+}
+
+export class GdaxTradeSnapshotMessage extends GdaxChannelMessage implements ITradeSnapshotMessage {
+  messages: GdaxTradeMessage[];
+
+  constructor( ) {
+    super( );
+    this.messages = [];
+    this.isSnapshot = true;
+  }
+}

@@ -65,26 +65,26 @@ export class ApiRequestQueue {
         }
       }
 
-      console.log( 'BATCH REQUEST | items.length: ' + requestsToPerform.length + ' queue.length: ' + this._queue.length );
+      console.log( 'ApiRequestQueue | performRequest() | items.length: ' + requestsToPerform.length + ' queue.length: ' + this._queue.length );
 
       // perform a request for all queued requests in this request timeframe
       requestsToPerform.forEach( item => {
-        console.log( 'requesting \'' + item.requestId + '\'... ');
+        console.log( 'ApiRequestQueue | request-id: \'' + item.requestId + '\' | requesting url: ' + item.requestUrl );
         this._http.get( item.requestUrl, item.options ).subscribe(
           response => {
             // if we receive status-code 429 the rate limited is active
             if (response.status === 429) {
-              console.log( '### RATE-LIMIT WARNING RECEIVED' );
+              console.log( 'ApiRequestQueue | ### RATE-LIMIT WARNING RECEIVED' );
               this._burstModeEnabled = false;
-              this._queue.push( item );
+              this._queue.unshift( item );
               return;
             }
 
-            console.log( 'response \'' + item.requestId + '\' received' );
+            console.log( 'ApiRequestQueue | request-id: \'' + item.requestId + '\' | response received' );
             item.response.result = response;
           },
           error => item.response.result = 'error',
-          ( ) => console.log( 'request \'' + item.requestId + '\' completed' )
+          ( ) => console.log( 'ApiRequestQueue | request-id: \'' + item.requestId + '\' | completed' )
         );
       });
     }
