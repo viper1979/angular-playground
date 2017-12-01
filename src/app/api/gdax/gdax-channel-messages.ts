@@ -35,6 +35,8 @@ export class GdaxTickerMessage extends GdaxChannelMessage implements ITickerMess
   high: number;
   low: number;
 
+  source: any;
+
   constructor() {
     super();
   }

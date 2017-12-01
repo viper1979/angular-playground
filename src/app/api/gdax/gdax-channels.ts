@@ -7,6 +7,7 @@ import { BehaviorSubject } from 'rxjs/BehaviorSubject';
 import { GdaxTickerMessage, GdaxChannelMessage, GdaxTickerSnapshotMessage, GdaxCandleSnapshotMessage, GdaxCandleMessage, GdaxTradeMessage, GdaxTradeSnapshotMessage } from 'app/api/gdax/gdax-channel-messages';
 import { tick } from '@angular/core/testing';
 import { RequestItem } from 'app/shared/api-request-queue/api-request-queue';
+import { element } from 'protractor';
 
 export class GdaxChannelSubscription implements IChannelSubscription {
   protected readonly _channel: IChannel;
@@ -129,6 +130,7 @@ export class GdaxTickerChannel extends GdaxChannel {
         tickerMessage.channelIdentifier = parsedMessage.type + '_' + parsedMessage.product_id;
         tickerMessage.messageType = 'ticker';
         tickerMessage.isSnapshot = false;
+        tickerMessage.source = parsedMessage;
 
         tickerMessage.lastPrice = parsedMessage.price;
         tickerMessage.high = parsedMessage.high_24h;
@@ -185,24 +187,41 @@ export class GdaxTickerChannel extends GdaxChannel {
       tickerMessage.dailyChange = ( tickerMessage.lastPrice - stats.data.open );
       tickerMessage.dailyChangePercent = ( ( tickerMessage.lastPrice - stats.data.open ) / stats.data.open ) * 100;
 
+      tickerMessage.source = ticker.data;
+
       return tickerMessage;
     });
   }
 }
 
-export class GdaxTradeChannel extends GdaxTickerChannel {
+export class GdaxTradeChannel extends GdaxChannel {
+  public symbol: string;
+  public pair: string;
   public apiTrades: RequestItem;
+
+  private _tickerChannel: GdaxTickerChannel;
+  protected listener: BehaviorSubject<IChannelMessage>;
+  private _tickerListener: Observable<IChannelMessage>;
 
   constructor( ) {
     super();
+
+    this.listener = new BehaviorSubject<IChannelMessage>( null );
+  }
+
+  public applyTickerSubscription( tickerSubscription: GdaxChannelSubscription ): void {
+    this._tickerListener = tickerSubscription.listener;
+  }
+
+  public getSubscribeMessage( options?: any ): string {
+    return 'NOT USED';
+  }
+
+  public getUnsubscribeMessage( ): string {
+    return 'NOT USED';
   }
 
   public getSubscription( ): IChannelSubscription {
-    this.apiStats = null;
-    this.apiTicker = null;
-
-    let subscription = super.getSubscription( );
-
     if (this.apiTrades) {
       this.apiTrades.response.getListener( ).subscribe(
         response => {
@@ -217,46 +236,82 @@ export class GdaxTradeChannel extends GdaxTickerChannel {
       );
     }
 
-    return subscription;
+    this._tickerListener.filter( item => item !== null ).map( item => {
+      let tickerMessage = item as GdaxTickerMessage;
+      let tradeMessage = new GdaxTradeMessage( );
+
+      if (!tickerMessage.source) {
+        return;
+      }
+
+      tradeMessage.channelIdentifier = 'trade_' + this.symbol;
+
+      console.log( 'tickerMessage: ' + JSON.stringify( tickerMessage ) );
+
+      if (tickerMessage.source.hasOwnProperty('trade_id')) {
+        tradeMessage.tradeId = tickerMessage.source.trade_id;
+        tradeMessage.orderPrice = tickerMessage.lastPrice;
+        tradeMessage.amount = tickerMessage.volume;
+        tradeMessage.timestamp = new Date( Date.parse( tickerMessage.source.time ) );
+        tradeMessage.orderType = tickerMessage.source.side === 'buy' ? OrderType.BuyOrder : OrderType.SellOrder;
+      } else {
+        tradeMessage.tradeId = -1;
+        tradeMessage.orderPrice = tickerMessage.lastPrice;
+        tradeMessage.amount = tickerMessage.volume;
+      }
+
+      return tradeMessage;
+    }).subscribe( message => {
+      this.sendMessage( message );
+    })
+
+    return new GdaxChannelSubscription( this, this.pair, this.listener.filter(item => item !== null));
   }
 
   public sendMessage( parsedMessage: any ): void {
     console.log( 'GdaxTradeChannel | sendMessage | parsedMessage: ' + parsedMessage );
 
     if (parsedMessage) {
-      if (parsedMessage.source === 'REST_API') {
-        if (parsedMessage.data instanceof Array) {
-          let tradeSnapshotMessage = new GdaxTradeSnapshotMessage( );
-          tradeSnapshotMessage.channelIdentifier = 'trade_' + this.symbol;
-
-          parsedMessage.data.forEach( trade => {
-            let tradeMessage = new GdaxTradeMessage( );
-            tradeMessage.channelIdentifier = 'trade_' + this.symbol;
-            tradeMessage.timestamp = new Date( Date.parse( trade.time ));
-            tradeMessage.tradeId = trade.trade_id;
-            tradeMessage.orderPrice = trade.price;
-            tradeMessage.amount = trade.size;
-            tradeMessage.orderType = trade.side === 'buy' ? OrderType.BuyOrder : OrderType.SellOrder;
-
-            tradeSnapshotMessage.messages.push( tradeMessage );
-          });
-
-          this.listener.next( tradeSnapshotMessage );
-        }
+      if (parsedMessage instanceof GdaxTradeMessage) {
+        this.listener.next( parsedMessage );
       } else {
-        let tradeMessage = new GdaxTradeMessage( );
+        if (parsedMessage.source === 'REST_API') {
+          if (parsedMessage.data instanceof Array) {
+            let tradeSnapshotMessage = new GdaxTradeSnapshotMessage( );
+            tradeSnapshotMessage.channelIdentifier = 'trade_' + this.symbol;
 
-        tradeMessage.channelIdentifier = parsedMessage.type + '_' + parsedMessage.product_id;
-        tradeMessage.messageType = 'ticker';
-        tradeMessage.isSnapshot = false;
+            parsedMessage.data.forEach( trade => {
+              let tradeMessage = new GdaxTradeMessage( );
+              tradeMessage.channelIdentifier = 'trade_' + this.symbol;
+              tradeMessage.timestamp = new Date( Date.parse( trade.time ));
+              tradeMessage.tradeId = trade.trade_id;
+              tradeMessage.orderPrice = trade.price;
+              tradeMessage.amount = trade.size;
+              tradeMessage.orderType = trade.side === 'buy' ? OrderType.BuyOrder : OrderType.SellOrder;
 
-        tradeMessage.tradeId = parsedMessage.trade_id;
-        tradeMessage.timestamp = new Date( Date.parse( parsedMessage.time ) );
-        tradeMessage.orderType = parsedMessage.side === 'buy' ? OrderType.BuyOrder : OrderType.SellOrder;
-        tradeMessage.amount = parsedMessage.last_size;
-        tradeMessage.orderPrice = parsedMessage.price;
+              tradeSnapshotMessage.messages.push( tradeMessage );
+            });
 
-        this.listener.next( tradeMessage );
+            this.listener.next( tradeSnapshotMessage );
+          }
+        }
+        // #region unused
+        // } else {
+        //   let tradeMessage = new GdaxTradeMessage( );
+
+        //   tradeMessage.channelIdentifier = parsedMessage.type + '_' + parsedMessage.product_id;
+        //   tradeMessage.messageType = 'ticker';
+        //   tradeMessage.isSnapshot = false;
+
+        //   tradeMessage.tradeId = parsedMessage.trade_id;
+        //   tradeMessage.timestamp = new Date( Date.parse( parsedMessage.time ) );
+        //   tradeMessage.orderType = parsedMessage.side === 'buy' ? OrderType.BuyOrder : OrderType.SellOrder;
+        //   tradeMessage.amount = parsedMessage.last_size;
+        //   tradeMessage.orderPrice = parsedMessage.price;
+
+        //   this.listener.next( tradeMessage );
+        // }
+        // #endregion
       }
     }
   }

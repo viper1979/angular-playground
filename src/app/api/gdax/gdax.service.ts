@@ -6,7 +6,7 @@ import { Http } from '@angular/http';
 import { Product } from 'app/api/gdax/models/product';
 import { forEach } from '@angular/router/src/utils/collection';
 import { Observable } from 'rxjs/Observable';
-import { GdaxTradeChannel, GdaxTickerChannel, GdaxBooksChannel, GdaxCandleChannel, GdaxChannel } from 'app/api/gdax/gdax-channels';
+import { GdaxTradeChannel, GdaxTickerChannel, GdaxBooksChannel, GdaxCandleChannel, GdaxChannel, GdaxChannelSubscription } from 'app/api/gdax/gdax-channels';
 import { parse } from 'querystring';
 import { IAssetPair } from 'app/shared/exchange-handler/interfaces/asset-pair';
 import { GdaxAssetPair } from 'app/api/gdax/models/gdax-asset-pair';
@@ -80,6 +80,9 @@ export class GdaxService extends ExchangeService {
     // request trade api method
     let relativeApiUrl = `/products/${symbol}/trades`
     channel.apiTrades = this._apiRequestQueue.request( this._apiUrl + relativeApiUrl );
+
+    let tickerSubscription = this.getTicker( symbol ) as GdaxChannelSubscription;
+    channel.applyTickerSubscription( tickerSubscription );
 
     return channel.getSubscription( );
   }

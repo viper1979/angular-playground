@@ -124,6 +124,8 @@ export class BitfinexTickerMessage extends BitfinexChannelMessage implements ITi
   high: number;
   low: number;
 
+  source: any;
+
   constructor() {
     super();
   }
